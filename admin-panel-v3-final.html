@@ -1,0 +1,2314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NEXUS Admin — Enterprise Suite</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --primary:#0ea5e9;--pd:#0284c7;--pl:#e0f2fe;
+  --sb:#0f172a;--sbh:#1e293b;
+  --bg:#f1f5f9;--sur:#fff;--sur2:#f8fafc;
+  --bor:#e2e8f0;--tx:#0f172a;--muted:#64748b;
+  --ok:#22c55e;--warn:#f59e0b;--err:#ef4444;--inf:#3b82f6;
+  --r:12px;--sh:0 1px 3px rgba(0,0,0,.08);
+  --shm:0 4px 6px -1px rgba(0,0,0,.08);
+  --shl:0 20px 40px rgba(0,0,0,.15);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--tx);display:flex;min-height:100vh;font-size:14px}
+
+/* ── SIDEBAR ── */
+.sb{width:260px;min-height:100vh;background:var(--sb);display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:200;transition:transform .3s;overflow-y:auto}
+.sb::-webkit-scrollbar{width:4px}.sb::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.sb-logo{padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.li{width:36px;height:36px;background:var(--primary);border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:16px}
+.lt{color:#fff;font-size:18px;font-weight:700}.lt span{color:var(--primary)}
+.sb-sec{padding:14px 12px 4px}
+.sb-lbl{color:rgba(255,255,255,.3);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:0 8px;margin-bottom:2px}
+.sb-nav{list-style:none}
+.sb-nav li button{width:100%;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;border:none;background:none;color:rgba(255,255,255,.55);cursor:pointer;font-size:13px;font-weight:500;text-align:left;transition:all .15s}
+.sb-nav li button:hover{background:var(--sbh);color:rgba(255,255,255,.9)}
+.sb-nav li button.active{background:rgba(14,165,233,.18);color:#fff}
+.sb-nav li button.active .ni{color:var(--primary)}
+.ni{font-size:16px;flex-shrink:0}
+.nb{margin-left:auto;background:var(--err);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:10px}
+.nb.b{background:var(--primary)}.nb.g{background:var(--ok)}
+/* sub-nav */
+.sub-nav{list-style:none;overflow:hidden;max-height:0;transition:max-height .3s ease}
+.sub-nav.open{max-height:400px}
+.sub-nav li button{padding:7px 12px 7px 40px;font-size:12px;color:rgba(255,255,255,.4);border-radius:6px}
+.sub-nav li button:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.05)}
+.sub-nav li button.active{color:#7dd3fc;background:rgba(14,165,233,.1)}
+.expand-arrow{margin-left:auto;font-size:10px;transition:transform .3s}
+.expand-arrow.open{transform:rotate(180deg)}
+.sb-foot{margin-top:auto;padding:12px;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.ap{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background .15s}
+.ap:hover{background:var(--sbh)}
+.av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0}
+.an{color:#fff;font-size:12px;font-weight:600}.ar{color:rgba(255,255,255,.4);font-size:11px}
+.sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
+
+/* ── MAIN ── */
+.main{margin-left:260px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.top{background:var(--sur);border-bottom:1px solid var(--bor);padding:0 22px;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--sh)}
+.top-l{display:flex;align-items:center;gap:14px}
+.hbg{display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--tx);padding:4px}
+.ph{font-size:17px;font-weight:700}
+.top-r{display:flex;align-items:center;gap:10px}
+.tb{background:none;border:1px solid var(--bor);border-radius:8px;padding:7px 13px;cursor:pointer;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px;transition:all .15s;font-family:inherit}
+.tb:hover{border-color:var(--primary);color:var(--primary)}
+.sr{display:flex;align-items:center;background:var(--sur2);border:1px solid var(--bor);border-radius:8px;padding:7px 13px;gap:8px}
+.sr input{border:none;background:none;outline:none;font-size:13px;width:190px;color:var(--tx)}
+
+/* ── PAGES ── */
+.pg{padding:22px 24px;display:none}
+.pg.active{display:block;animation:fi .22s ease}
+@keyframes fi{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── KPI ── */
+.kg{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:15px;margin-bottom:22px}
+.kc{background:var(--sur);border-radius:var(--r);padding:18px 20px;box-shadow:var(--sh);border:1px solid var(--bor);display:flex;align-items:flex-start;justify-content:space-between}
+.kl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.kv{font-size:24px;font-weight:800;letter-spacing:-.5px}
+.kch{margin-top:5px;font-size:11px;font-weight:600}.kch.up{color:var(--ok)}.kch.dn{color:var(--err)}
+.ki{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ki.bl{background:#dbeafe}.ki.gr{background:#dcfce7}.ki.or{background:#ffedd5}.ki.pu{background:#f3e8ff}.ki.re{background:#fee2e2}.ki.cy{background:#cffafe}
+
+/* ── CARD ── */
+.cd{background:var(--sur);border-radius:var(--r);border:1px solid var(--bor);box-shadow:var(--sh)}
+.cd-hd{padding:15px 20px;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.cd-t{font-size:14px;font-weight:700}
+.cd-b{padding:18px 20px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:22px}
+.mb5{margin-bottom:20px}
+
+/* ── TABLE ── */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;padding:10px 13px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;background:var(--sur2);border-bottom:1px solid var(--bor);white-space:nowrap;user-select:none}
+th.s{cursor:pointer}th.s:hover{color:var(--primary)}
+th.sa::after{content:' ↑';color:var(--primary)}th.sd::after{content:' ↓';color:var(--primary)}
+td{padding:11px 13px;border-bottom:1px solid var(--bor);font-size:13px;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#f8fafc}
+tbody tr.sel td{background:#eff6ff}
+
+/* Inline edit */
+.ie{border:none;background:transparent;font-size:13px;color:var(--tx);font-family:inherit;padding:0;width:100%;outline:none;cursor:text}
+td.editing .ie{background:#fff;border:1.5px solid var(--primary);border-radius:6px;padding:5px 8px;box-shadow:0 0 0 3px rgba(14,165,233,.1)}
+td.editing{padding:6px 8px}
+
+/* Bulk bar */
+.bb{display:none;background:var(--primary);color:#fff;padding:10px 18px;align-items:center;gap:12px;font-size:13px;font-weight:600;border-radius:10px;margin-bottom:12px}
+.bb.on{display:flex}
+.bb button{background:rgba(255,255,255,.18);border:none;color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:background .15s;font-family:inherit}
+.bb button:hover{background:rgba(255,255,255,.3)}
+.bb button.dd{background:rgba(239,68,68,.4)}.bb button.dd:hover{background:rgba(239,68,68,.6)}
+
+/* Pagination */
+.pgn{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-top:1px solid var(--bor);flex-wrap:wrap;gap:8px}
+.pgn-i{font-size:12px;color:var(--muted)}
+.pgn-c{display:flex;align-items:center;gap:5px}
+.pb{width:30px;height:30px;border-radius:7px;border:1px solid var(--bor);background:#fff;cursor:pointer;font-size:12px;font-weight:600;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.pb:hover{border-color:var(--primary);color:var(--primary)}
+.pb.on{background:var(--primary);border-color:var(--primary);color:#fff}
+.pb:disabled{opacity:.4;cursor:not-allowed}
+.rsp{padding:5px 9px;border:1px solid var(--bor);border-radius:6px;font-size:12px;outline:none;background:#fff}
+
+/* ── BADGES ── */
+.bge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px}
+.bge::before{content:'●';font-size:7px}
+.bs{background:#dcfce7;color:#16a34a}.bw{background:#fef3c7;color:#d97706}
+.be{background:#fee2e2;color:#dc2626}.bi{background:#dbeafe;color:#2563eb}
+.bg{background:#f1f5f9;color:#64748b}.bp{background:#f3e8ff;color:#7c3aed}
+.bo{background:#fff7ed;color:#ea580c}.bcy{background:#cffafe;color:#0891b2}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .15s;font-family:inherit}
+.btn-p{background:var(--primary);color:#fff}.btn-p:hover{background:var(--pd);box-shadow:0 4px 12px rgba(14,165,233,.3)}
+.btn-o{background:#fff;color:var(--tx);border:1px solid var(--bor)}.btn-o:hover{border-color:var(--primary);color:var(--primary)}
+.btn-s{background:var(--ok);color:#fff}.btn-d{background:var(--err);color:#fff}.btn-d:hover{background:#dc2626}
+.btn-warn{background:var(--warn);color:#fff}
+.btn-sm{padding:5px 11px;font-size:12px}.btn-xs{padding:3px 8px;font-size:11px}
+.bic{padding:6px;border-radius:7px;background:none;border:1px solid var(--bor);cursor:pointer;color:var(--muted);transition:all .15s;font-size:14px;line-height:1}
+.bic:hover{border-color:var(--primary);color:var(--primary)}
+.bic.d:hover{border-color:var(--err);color:var(--err)}
+
+/* ── FORMS ── */
+input[type=text],input[type=email],input[type=number],input[type=date],input[type=password],select,textarea{width:100%;padding:8px 12px;border:1px solid var(--bor);border-radius:8px;font-size:13px;color:var(--tx);background:var(--sur);outline:none;transition:border-color .15s;font-family:inherit}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(14,165,233,.1)}
+.fl{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:5px;display:block}
+.fg{margin-bottom:14px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+/* ── TOOLBAR ── */
+.tlb{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.tlb-l,.tlb-r{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.is{display:flex;align-items:center;background:var(--sur);border:1px solid var(--bor);border-radius:8px;padding:7px 12px;gap:7px}
+.is input{border:none;background:none;outline:none;font-size:13px;width:200px}
+
+/* ── MODAL ── */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center;padding:14px}
+.mo.on{display:flex}
+.md{background:var(--sur);border-radius:16px;width:600px;max-width:100%;max-height:94vh;overflow-y:auto;box-shadow:var(--shl);animation:mi .2s ease;display:flex;flex-direction:column}
+.md-lg{width:820px}.md-xl{width:1000px}
+@keyframes mi{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.mh{padding:20px 22px 14px;border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between}
+.mt{font-size:16px;font-weight:700;display:flex;align-items:center;gap:9px}
+.mc{background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);line-height:1;padding:4px;border-radius:5px}
+.mc:hover{background:var(--bg)}
+.mb_{padding:22px;flex:1;overflow-y:auto}
+.mf{padding:14px 22px;border-top:1px solid var(--bor);display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-shrink:0}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:2px;border-bottom:2px solid var(--bor);margin-bottom:20px;flex-wrap:wrap}
+.tab{background:none;border:none;padding:9px 18px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;font-family:inherit;border-radius:6px 6px 0 0}
+.tab:hover{color:var(--tx);background:var(--sur2)}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary);background:var(--pl)}
+
+/* ── STATUS STEPS ── */
+.steps{display:flex;align-items:center;gap:0;margin:16px 0;overflow-x:auto;padding:4px 0}
+.step{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;min-width:80px;position:relative}
+.step::after{content:'';position:absolute;top:14px;left:50%;width:100%;height:2px;background:var(--bor);z-index:0}
+.step:last-child::after{display:none}
+.step-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--bor);background:var(--sur);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;z-index:1;position:relative}
+.step.done .step-dot{background:var(--ok);border-color:var(--ok);color:#fff}
+.step.active .step-dot{background:var(--primary);border-color:var(--primary);color:#fff}
+.step.fail .step-dot{background:var(--err);border-color:var(--err);color:#fff}
+.step.done::after,.step.active::after{background:var(--primary)}
+.step-lbl{font-size:10px;font-weight:600;color:var(--muted);text-align:center;white-space:nowrap}
+.step.active .step-lbl,.step.done .step-lbl{color:var(--tx)}
+
+/* ── TIMELINE ── */
+.tl{position:relative;padding-left:28px}
+.tl::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:2px;background:var(--bor)}
+.tli{position:relative;padding-bottom:16px}
+.tli:last-child{padding-bottom:0}
+.tld{position:absolute;left:-22px;top:3px;width:14px;height:14px;border-radius:50%;border:2px solid var(--bor);background:var(--sur);display:flex;align-items:center;justify-content:center;font-size:8px}
+.tli.done .tld{background:var(--ok);border-color:var(--ok);color:#fff}
+.tli.active .tld{background:var(--primary);border-color:var(--primary);color:#fff}
+.tli.fail .tld{background:var(--err);border-color:var(--err);color:#fff}
+.tl-lb{font-size:13px;font-weight:600}.tl-tm{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ── INFO SECTIONS ── */
+.ig{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px}
+.is2{background:var(--sur2);border-radius:10px;padding:14px}
+.is2-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:10px}
+.ir{display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid var(--bor)}
+.ir:last-child{border-bottom:none}
+.il{color:var(--muted)}.iv{font-weight:600;text-align:right}
+
+/* ── LINE ITEMS ── */
+.li2{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bor)}
+.li2:last-child{border-bottom:none}
+.lii{width:46px;height:46px;border-radius:8px;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;border:1px solid var(--bor)}
+.lin{font-weight:600;font-size:13px}.lim{font-size:11px;color:var(--muted)}
+
+/* ── PRODUCT CELL ── */
+.pc{display:flex;align-items:center;gap:10px}
+.pi{width:40px;height:40px;border-radius:8px;border:1px solid var(--bor);display:flex;align-items:center;justify-content:center;font-size:18px;background:var(--sur2);flex-shrink:0}
+.pm{font-size:11px;color:var(--muted)}
+.stb{height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;width:75px}
+.stf{height:100%;border-radius:3px}
+
+/* ── RMA ── */
+.rma-card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px 20px;margin-bottom:12px;transition:box-shadow .2s}
+.rma-card:hover{box-shadow:var(--shm)}
+.rma-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.rma-id{font-size:14px;font-weight:700;color:var(--primary)}
+.rma-items{display:flex;gap:10px;overflow-x:auto;padding:4px 0}
+.rma-item{background:var(--sur2);border-radius:9px;padding:10px 14px;font-size:12px;min-width:150px;border:1px solid var(--bor)}
+.rma-reason{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* ── DRIVER CARD ── */
+.dr-card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px;transition:all .2s}
+.dr-card:hover{box-shadow:var(--shm);border-color:var(--primary)}
+.dr-av{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#22c55e);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;margin-bottom:10px}
+.dr-name{font-weight:700;font-size:14px;margin-bottom:4px}
+.dr-stat{font-size:11px;color:var(--muted)}
+.dr-orders{background:var(--pl);color:var(--pd);font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;margin-top:10px;display:inline-block}
+
+/* Vehicle card */
+.vc{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.vc-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.vc-bar-wrap{background:#e2e8f0;border-radius:6px;height:10px;overflow:hidden;margin:6px 0}
+.vc-bar{height:100%;border-radius:6px;transition:width .3s}
+
+/* Cycle count */
+.cc-card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.cc-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px}
+.variance-pos{color:var(--ok);font-weight:700}.variance-neg{color:var(--err);font-weight:700}
+
+/* Movement tracker */
+.mv-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bor);font-size:13px}
+.mv-row:last-child{border-bottom:none}
+.mv-type{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.mv-in{background:#dcfce7;color:#16a34a}
+.mv-out{background:#fee2e2;color:#dc2626}
+.mv-adj{background:#fef3c7;color:#d97706}
+.mv-tf{background:#dbeafe;color:#2563eb}
+.mv-ret{background:#f3e8ff;color:#7c3aed}
+
+/* Report cards */
+.rpc{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:20px;transition:all .2s;cursor:pointer}
+.rpc:hover{box-shadow:var(--shm);border-color:var(--primary)}
+.rpc-ico{font-size:32px;margin-bottom:10px}
+.rpc-t{font-size:14px;font-weight:700;margin-bottom:5px}
+.rpc-d{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+.rpc-act{display:flex;gap:7px;flex-wrap:wrap}
+.eb{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;border:1px solid var(--bor);background:#fff;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;font-family:inherit}
+.eb.csv{border-color:#16a34a;color:#16a34a;background:#f0fdf4}
+.eb.pdf{border-color:#dc2626;color:#dc2626;background:#fff5f5}
+.eb.xl{border-color:#0369a1;color:#0369a1;background:#eff6ff}
+.eb.pr{border-color:#7c3aed;color:#7c3aed;background:#faf5ff}
+.eb.em{border-color:#ea580c;color:#ea580c;background:#fff7ed}
+
+/* Activity */
+.acl{list-style:none}
+.aci{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--bor)}
+.aci:last-child{border-bottom:none}
+.acd{width:9px;height:9px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.act{font-size:13px;line-height:1.5}.actt{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* Login */
+.lp{position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#1e3a5f);display:flex;align-items:center;justify-content:center;z-index:5000}
+.lc{background:var(--sur);border-radius:20px;padding:40px;width:420px;max-width:95vw;box-shadow:var(--shl)}
+.ll{text-align:center;margin-bottom:26px}
+.lli{width:52px;height:52px;background:var(--primary);border-radius:14px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:22px;margin:0 auto 10px}
+.le{background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;padding:9px 13px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none}
+
+/* Misc */
+.tx-m{color:var(--muted)}.tx-ok{color:var(--ok)}.tx-err{color:var(--err)}.tx-warn{color:var(--warn)}
+.tg{display:inline-block;background:var(--pl);color:var(--pd);font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px}
+.div{border:none;border-top:1px solid var(--bor);margin:14px 0}
+.pw{background:#e2e8f0;border-radius:4px;height:7px;overflow:hidden}
+.pf{height:100%;background:var(--primary);border-radius:4px}
+.av-sm{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
+.section-t{font-size:16px;font-weight:700;margin-bottom:14px}
+
+/* Toast */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--tx);color:#fff;padding:12px 18px;border-radius:10px;font-size:13px;z-index:9999;transform:translateY(60px);opacity:0;transition:all .3s;max-width:300px}
+.toast.on{transform:translateY(0);opacity:1}
+
+/* Responsive */
+@media(max-width:1024px){
+  .sb{transform:translateX(-100%)}.sb.open{transform:translateX(0)}
+  .sb-ov.open{display:block}.main{margin-left:0}.hbg{display:block}
+  .g2,.g3{grid-template-columns:1fr}
+  .sr{display:none}.ig{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .pg{padding:12px 10px}.kg{grid-template-columns:1fr 1fr;gap:10px}
+  .fr,.fr3{grid-template-columns:1fr}
+}
+@media print{
+  .sb,.top,.tlb,.bb,.pgn,.no-print{display:none!important}
+  .main{margin-left:0}.pg{display:block!important;padding:0}
+  body{background:#fff}.cd{box-shadow:none;border:1px solid #ddd}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="lp" id="LP">
+  <div class="lc">
+    <div class="ll"><div class="lli">N</div><h1 style="font-size:22px;font-weight:800">NEXUS Admin</h1><p style="color:var(--muted);font-size:13px;margin-top:4px">Enterprise Commerce Suite</p></div>
+    <div class="le" id="LE">Invalid credentials. Use admin@nexus.com / password123</div>
+    <div class="fg"><label class="fl">Email</label><input type="email" id="EM" value="admin@nexus.com"/></div>
+    <div class="fg"><label class="fl">Password</label><input type="password" id="PW" value="password123" onkeydown="if(event.key==='Enter')login()"/></div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:18px"><label style="display:flex;align-items:center;gap:7px;font-size:13px;cursor:pointer"><input type="checkbox" checked/> Remember me</label><a href="#" style="color:var(--primary);font-size:13px">Forgot password?</a></div>
+    <button class="btn btn-p" style="width:100%;justify-content:center;padding:11px" onclick="login()">Sign In →</button>
+    <p style="text-align:center;color:var(--muted);font-size:11px;margin-top:14px">admin@nexus.com / password123</p>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sb" id="SB">
+  <div class="sb-logo"><div class="li">N</div><div class="lt">NEX<span>US</span></div></div>
+
+  <div class="sb-sec"><div class="sb-lbl">Overview</div>
+    <ul class="sb-nav"><li><button onclick="go('dashboard')" id="n-dashboard" class="active"><span class="ni">📊</span>Dashboard</button></li></ul>
+  </div>
+
+  <div class="sb-sec"><div class="sb-lbl">Orders</div>
+    <ul class="sb-nav">
+      <li>
+        <button onclick="toggleSub('orders-sub','orders-arrow');go('all-orders')" id="n-all-orders">
+          <span class="ni">📦</span>Orders<span class="nb" id="orderBadge">14</span>
+          <span class="expand-arrow" id="orders-arrow">▼</span>
+        </button>
+        <ul class="sub-nav" id="orders-sub">
+          <li><button onclick="go('all-orders')" id="n-so-all">All Orders</button></li>
+          <li><button onclick="go('returns')" id="n-so-returns">Returns / RMA<span class="nb b" style="margin-left:auto">3</span></button></li>
+          <li><button onclick="go('partial-fulfil')" id="n-so-partial">Partial Fulfillment</button></li>
+          <li><button onclick="go('exchanges')" id="n-so-exchanges">Exchanges</button></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <div class="sb-sec"><div class="sb-lbl">Inventory</div>
+    <ul class="sb-nav">
+      <li>
+        <button onclick="toggleSub('inv-sub','inv-arrow');go('soh')" id="n-soh">
+          <span class="ni">📋</span>Inventory<span class="nb b">3</span>
+          <span class="expand-arrow" id="inv-arrow">▼</span>
+        </button>
+        <ul class="sub-nav" id="inv-sub">
+          <li><button onclick="go('soh')" id="n-so-soh">Stock on Hand (SOH)</button></li>
+          <li><button onclick="go('new-product')" id="n-so-newprod">New Product</button></li>
+          <li><button onclick="go('bundle-product')" id="n-so-bundle">Bundle Products</button></li>
+          <li><button onclick="go('product-details')" id="n-so-proddet">Product Details</button></li>
+          <li><button onclick="go('cycle-count')" id="n-so-cycle">Cycle Count</button></li>
+          <li><button onclick="go('movement')" id="n-so-movement">Movement Tracker</button></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <div class="sb-sec"><div class="sb-lbl">Logistics</div>
+    <ul class="sb-nav">
+      <li>
+        <button onclick="toggleSub('logi-sub','logi-arrow');go('dispatch')" id="n-dispatch">
+          <span class="ni">🚚</span>Logistics
+          <span class="expand-arrow" id="logi-arrow">▼</span>
+        </button>
+        <ul class="sub-nav" id="logi-sub">
+          <li><button onclick="go('dispatch')" id="n-so-dispatch">Dispatch Orders</button></li>
+          <li><button onclick="go('drivers')" id="n-so-drivers">Driver Management</button></li>
+          <li><button onclick="go('utl')" id="n-so-utl">Last-Mile Tracking</button></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <div class="sb-sec"><div class="sb-lbl">Analytics</div>
+    <ul class="sb-nav">
+      <li><button onclick="go('analytics')" id="n-analytics"><span class="ni">📈</span>Analytics</button></li>
+      <li><button onclick="go('reports')" id="n-reports"><span class="ni">📄</span>Reports</button></li>
+    </ul>
+  </div>
+
+  <div class="sb-sec"><div class="sb-lbl">System</div>
+    <ul class="sb-nav">
+      <li><button onclick="go('settings')" id="n-settings"><span class="ni">⚙️</span>Settings</button></li>
+    </ul>
+  </div>
+
+  <div class="sb-foot">
+    <div class="ap">
+      <div class="av">A</div>
+      <div style="flex:1;overflow:hidden"><div class="an">Alex Rahman</div><div class="ar">Super Admin</div></div>
+      <button onclick="logout()" style="background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:17px" title="Logout">↩</button>
+    </div>
+  </div>
+</aside>
+<div class="sb-ov" id="SBO" onclick="closeSB()"></div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="top">
+    <div class="top-l">
+      <button class="hbg" onclick="toggleSB()">☰</button>
+      <div class="ph" id="PH">Dashboard</div>
+    </div>
+    <div class="top-r">
+      <div class="sr"><span>🔍</span><input type="text" placeholder="Search anything…"/></div>
+      <button class="tb">🔔<span style="width:7px;height:7px;background:var(--err);border-radius:50%;position:absolute;margin-left:-4px;margin-top:-6px;border:2px solid var(--sur)"></span></button>
+      <button class="btn btn-p btn-sm" onclick="openM('addOrderM')">+ New Order</button>
+    </div>
+  </div>
+
+  <!-- ════ DASHBOARD ════ -->
+  <div class="pg active" id="pg-dashboard">
+    <div class="kg">
+      <div class="kc"><div><div class="kl">Revenue MTD</div><div class="kv">$184,920</div><div class="kch up">↑ 12.4%</div></div><div class="ki bl">💰</div></div>
+      <div class="kc"><div><div class="kl">Total Orders</div><div class="kv">2,840</div><div class="kch up">↑ 8.1%</div></div><div class="ki gr">📦</div></div>
+      <div class="kc"><div><div class="kl">Open Returns</div><div class="kv">14</div><div class="kch dn">↑ 3 pending</div></div><div class="ki re">↩️</div></div>
+      <div class="kc"><div><div class="kl">Active Drivers</div><div class="kv">8/12</div><div class="kch up">On route</div></div><div class="ki cy">🚚</div></div>
+    </div>
+    <div class="g2">
+      <div class="cd"><div class="cd-hd"><div class="cd-t">Revenue (Last 14 Days)</div></div><div class="cd-b"><div style="height:190px"><canvas id="revC"></canvas></div></div></div>
+      <div class="cd"><div class="cd-hd"><div class="cd-t">Orders by Status</div></div><div class="cd-b"><div style="height:190px"><canvas id="stC"></canvas></div></div></div>
+    </div>
+    <div class="g2">
+      <div class="cd">
+        <div class="cd-hd"><div class="cd-t">Recent Orders</div><button class="btn btn-o btn-sm" onclick="go('all-orders')">View All</button></div>
+        <div class="cd-b" style="padding:0">
+          <div class="tw"><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th></tr></thead>
+          <tbody id="dashOrders"></tbody></table></div>
+        </div>
+      </div>
+      <div class="cd">
+        <div class="cd-hd"><div class="cd-t">Low Stock Alerts</div><button class="btn btn-o btn-sm" onclick="go('soh')">View SOH</button></div>
+        <div class="cd-b" style="padding:0">
+          <div class="tw"><table><thead><tr><th>Product</th><th>SKU</th><th>Available</th><th>Status</th></tr></thead>
+          <tbody id="dashStock"></tbody></table></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ ALL ORDERS ════ -->
+  <div class="pg" id="pg-all-orders">
+    <div class="tlb">
+      <div class="tlb-l">
+        <div class="is"><span>🔍</span><input type="text" placeholder="Search orders…" oninput="filterOrd(this.value)"/></div>
+        <select style="width:auto;padding:8px 12px" onchange="filterOrdS(this.value)"><option value="">All Statuses</option><option>processing</option><option>shipped</option><option>delivered</option><option>cancelled</option></select>
+        <select style="width:auto;padding:8px 12px" onchange="filterOrdP(this.value)"><option value="">All Payments</option><option>paid</option><option>pending</option><option>failed</option></select>
+      </div>
+      <div class="tlb-r">
+        <button class="btn btn-o btn-sm" onclick="expOrdCSV()">📊 CSV</button>
+        <button class="btn btn-o btn-sm" onclick="printT('ordT')">🖨️ Print</button>
+        <button class="btn btn-p btn-sm" onclick="openM('addOrderM')">+ New Order</button>
+      </div>
+    </div>
+    <div class="bb" id="ordBB"><span id="ordBBC">0 selected</span><button onclick="bulkExpOrd()">📤 Export</button><button onclick="bulkUpdOrd()">🔄 Update Status</button><button class="dd" onclick="bulkDelOrd()">🗑️ Delete</button><button onclick="clrSel('ord')" style="margin-left:auto;background:rgba(255,255,255,.15)">✕</button></div>
+    <div class="cd">
+      <div class="tw"><table id="ordT">
+        <thead><tr>
+          <th style="width:38px"><input type="checkbox" onchange="selAll('ord',this.checked)"/></th>
+          <th class="s" onclick="srt('ord','id')">Order ID</th>
+          <th class="s" onclick="srt('ord','customer')">Customer</th>
+          <th class="s" onclick="srt('ord','date')">Date</th>
+          <th>Items</th>
+          <th class="s" onclick="srt('ord','total')">Total</th>
+          <th class="s" onclick="srt('ord','payment')">Payment</th>
+          <th class="s" onclick="srt('ord','fulfillment')">Fulfillment</th>
+          <th style="width:110px">Actions</th>
+        </tr></thead>
+        <tbody id="ordB"></tbody>
+      </table></div>
+      <div class="pgn" id="ordPgn"></div>
+    </div>
+  </div>
+
+  <!-- ════ RETURNS / RMA ════ -->
+  <div class="pg" id="pg-returns">
+    <div class="kg" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+      <div class="kc"><div><div class="kl">Total Returns</div><div class="kv">47</div><div class="kch dn">This month</div></div><div class="ki re">↩️</div></div>
+      <div class="kc"><div><div class="kl">Pending Approval</div><div class="kv">3</div><div class="kch dn">Awaiting review</div></div><div class="ki or">⏳</div></div>
+      <div class="kc"><div><div class="kl">In Transit</div><div class="kv">8</div></div><div class="ki bl">🚚</div></div>
+      <div class="kc"><div><div class="kl">Refunded</div><div class="kv">$4,218</div><div class="kch up">MTD</div></div><div class="ki gr">💰</div></div>
+      <div class="kc"><div><div class="kl">Exchanges</div><div class="kv">12</div></div><div class="ki pu">🔄</div></div>
+    </div>
+    <div class="tlb">
+      <div class="tlb-l">
+        <div class="is"><span>🔍</span><input type="text" placeholder="Search RMA / Order ID…"/></div>
+        <select style="width:auto;padding:8px 12px"><option value="">All Status</option><option>requested</option><option>approved</option><option>in_transit</option><option>received</option><option>resolved</option></select>
+        <select style="width:auto;padding:8px 12px"><option value="">All Resolution</option><option>refund</option><option>exchange</option><option>store_credit</option><option>repair</option></select>
+      </div>
+      <div class="tlb-r">
+        <button class="btn btn-o btn-sm" onclick="expReturnsCSV()">📊 CSV</button>
+        <button class="btn btn-p btn-sm" onclick="openM('createReturnM')">+ Create Return</button>
+      </div>
+    </div>
+    <div id="returnsCards"></div>
+  </div>
+
+  <!-- ════ PARTIAL FULFILLMENT ════ -->
+  <div class="pg" id="pg-partial-fulfil">
+    <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:14px 18px;margin-bottom:18px;font-size:13px;display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">⚠️</span>
+      <div><strong>4 orders</strong> have partial fulfillment — some items shipped, others pending. Review and dispatch remaining items or notify customers.</div>
+    </div>
+    <div id="partialCards"></div>
+  </div>
+
+  <!-- ════ EXCHANGES ════ -->
+  <div class="pg" id="pg-exchanges">
+    <div class="tlb">
+      <div class="tlb-l"><div class="is"><span>🔍</span><input type="text" placeholder="Search exchanges…"/></div><select style="width:auto;padding:8px 12px"><option>All Status</option><option>pending</option><option>approved</option><option>shipped</option><option>completed</option></select></div>
+      <div class="tlb-r"><button class="btn btn-p btn-sm" onclick="openM('createExchangeM')">+ New Exchange</button></div>
+    </div>
+    <div class="cd">
+      <div class="tw"><table>
+        <thead><tr><th>Exchange ID</th><th>Original Order</th><th>Customer</th><th>Return Item</th><th>New Item</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="exchB"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ════ SOH ════ -->
+  <div class="pg" id="pg-soh">
+    <div class="kg" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+      <div class="kc"><div><div class="kl">Total SKUs</div><div class="kv">12</div></div><div class="ki bl">📦</div></div>
+      <div class="kc"><div><div class="kl">In Stock</div><div class="kv">8</div><div class="kch up">Healthy</div></div><div class="ki gr">✅</div></div>
+      <div class="kc"><div><div class="kl">Low Stock (≤8)</div><div class="kv">3</div><div class="kch dn">Action needed</div></div><div class="ki or">⚠️</div></div>
+      <div class="kc"><div><div class="kl">Out of Stock</div><div class="kv">1</div><div class="kch dn">Urgent</div></div><div class="ki re">🚨</div></div>
+      <div class="kc"><div><div class="kl">Total Value</div><div class="kv">$48.2K</div></div><div class="ki pu">💎</div></div>
+    </div>
+    <div class="tlb">
+      <div class="tlb-l">
+        <div class="is"><span>🔍</span><input type="text" placeholder="Search SKU / product…" oninput="filterInv(this.value)"/></div>
+        <select style="width:auto;padding:8px 12px"><option>All Locations</option><option>Warehouse A – Dhaka</option><option>Warehouse B – Chittagong</option></select>
+      </div>
+      <div class="tlb-r">
+        <button class="btn btn-o btn-sm" onclick="expInvCSV()">📊 CSV</button>
+        <button class="btn btn-o btn-sm" onclick="printT('invT')">🖨️ Print</button>
+        <button class="btn btn-p btn-sm" onclick="openM('adjStockM')">Adjust Stock</button>
+      </div>
+    </div>
+    <div class="bb" id="invBB"><span id="invBBC">0 selected</span><button onclick="bulkExpInv()">📤 Export</button><button onclick="clrSel('inv')" style="margin-left:auto;background:rgba(255,255,255,.15)">✕</button></div>
+    <div class="cd">
+      <div class="tw"><table id="invT">
+        <thead><tr>
+          <th style="width:38px"><input type="checkbox" onchange="selAll('inv',this.checked)"/></th>
+          <th class="s" onclick="srt('inv','name')">Product</th>
+          <th>SKU</th><th>Location</th>
+          <th class="s" onclick="srt('inv','onHand')">On Hand</th>
+          <th>Reserved</th>
+          <th class="s" onclick="srt('inv','available')">Available</th>
+          <th>Stock Level</th><th>Status</th><th style="width:130px">Actions</th>
+        </tr></thead>
+        <tbody id="invB"></tbody>
+      </table></div>
+      <div class="pgn" id="invPgn"></div>
+    </div>
+  </div>
+
+  <!-- ════ NEW PRODUCT ════ -->
+  <div class="pg" id="pg-new-product">
+    <div style="max-width:760px">
+      <div class="cd mb5">
+        <div class="cd-hd"><div class="cd-t">🆕 Create New Product</div></div>
+        <div class="cd-b">
+          <div class="fr"><div class="fg"><label class="fl">Product Name *</label><input type="text" id="npName" placeholder="e.g. Pro Mechanical Keyboard"/></div><div class="fg"><label class="fl">SKU *</label><input type="text" id="npSku" placeholder="ELEC-010"/></div></div>
+          <div class="fr"><div class="fg"><label class="fl">Category</label><select id="npCat"><option>electronics</option><option>apparel</option><option>home</option><option>accessories</option></select></div><div class="fg"><label class="fl">Status</label><select id="npStat"><option value="active">Active</option><option value="draft">Draft</option></select></div></div>
+          <div class="fr"><div class="fg"><label class="fl">Base Price (USD) *</label><input type="number" id="npPrice" placeholder="99.99" step=".01"/></div><div class="fg"><label class="fl">Compare-at Price</label><input type="number" id="npOld" placeholder="129.99" step=".01"/></div></div>
+          <div class="fr"><div class="fg"><label class="fl">Initial Stock</label><input type="number" id="npStock" placeholder="50"/></div><div class="fg"><label class="fl">Reorder Point</label><input type="number" id="npReorder" placeholder="10"/></div></div>
+          <div class="fr"><div class="fg"><label class="fl">Weight (g)</label><input type="number" id="npWeight" placeholder="500"/></div><div class="fg"><label class="fl">Warehouse Location</label><select><option>Warehouse A – Dhaka</option><option>Warehouse B – Chittagong</option></select></div></div>
+          <div class="fg"><label class="fl">Description</label><textarea id="npDesc" rows="3" placeholder="Detailed product description…"></textarea></div>
+          <div class="fg"><label class="fl">Tags (comma-separated)</label><input type="text" placeholder="wireless, mechanical, gaming"/></div>
+          <div style="display:flex;gap:10px;margin-top:4px">
+            <button class="btn btn-o" onclick="go('soh')">Cancel</button>
+            <button class="btn btn-p" onclick="saveNewProduct()">💾 Save Product</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ BUNDLE PRODUCT ════ -->
+  <div class="pg" id="pg-bundle-product">
+    <div class="g2" style="align-items:start">
+      <div>
+        <div class="cd mb5">
+          <div class="cd-hd"><div class="cd-t">📦 Create Bundle</div></div>
+          <div class="cd-b">
+            <div class="fg"><label class="fl">Bundle Name *</label><input type="text" id="bnName" placeholder="e.g. Home Office Starter Kit"/></div>
+            <div class="fg"><label class="fl">Bundle SKU</label><input type="text" id="bnSku" placeholder="BNDL-001"/></div>
+            <div class="fr"><div class="fg"><label class="fl">Bundle Price (USD)</label><input type="number" id="bnPrice" placeholder="249.99" step=".01"/></div><div class="fg"><label class="fl">Discount vs Sum</label><input type="text" id="bnDisc" placeholder="10%" readonly/></div></div>
+            <div class="fg"><label class="fl">Description</label><textarea id="bnDesc" rows="2" placeholder="Bundle contents and value proposition…"></textarea></div>
+          </div>
+        </div>
+        <div class="cd">
+          <div class="cd-hd"><div class="cd-t">Products in Bundle</div><button class="btn btn-o btn-sm" onclick="openM('addBundleItemM')">+ Add Item</button></div>
+          <div class="cd-b" id="bundleItemsList"><div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No items added yet. Click + Add Item to begin.</div></div>
+          <div style="padding:14px 20px;border-top:1px solid var(--bor);display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:13px;color:var(--muted)">Total individual value: <strong id="bnTotal">$0.00</strong></div>
+            <button class="btn btn-p" onclick="saveBundleProduct()">💾 Save Bundle</button>
+          </div>
+        </div>
+      </div>
+      <div class="cd">
+        <div class="cd-hd"><div class="cd-t">Existing Bundles</div></div>
+        <div class="cd-b" id="existingBundles"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════ PRODUCT DETAILS ════ -->
+  <div class="pg" id="pg-product-details">
+    <div class="tlb">
+      <div class="tlb-l"><div class="is"><span>🔍</span><input type="text" placeholder="Search products…" oninput="filterProds(this.value)"/></div></div>
+      <div class="tlb-r"><button class="btn btn-p btn-sm" onclick="go('new-product')">+ New Product</button></div>
+    </div>
+    <div class="cd">
+      <div class="tw"><table>
+        <thead><tr><th class="s" onclick="srt('prod','name')">Product</th><th>SKU</th><th class="s" onclick="srt('prod','cat')">Category</th><th class="s" onclick="srt('prod','price')">Price</th><th class="s" onclick="srt('prod','stock')">Stock</th><th>Status</th><th class="s" onclick="srt('prod','sales')">Sales</th><th>Actions</th></tr></thead>
+        <tbody id="prodDetB"></tbody>
+      </table></div>
+      <div class="pgn" id="prodDetPgn"></div>
+    </div>
+  </div>
+
+  <!-- ════ CYCLE COUNT ════ -->
+  <div class="pg" id="pg-cycle-count">
+    <div class="kg" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+      <div class="kc"><div><div class="kl">Active Counts</div><div class="kv">2</div></div><div class="ki bl">📊</div></div>
+      <div class="kc"><div><div class="kl">Completed (30d)</div><div class="kv">8</div><div class="kch up">97% accuracy</div></div><div class="ki gr">✅</div></div>
+      <div class="kc"><div><div class="kl">Variances Found</div><div class="kv">14</div><div class="kch dn">Items adjusted</div></div><div class="ki or">⚠️</div></div>
+      <div class="kc"><div><div class="kl">Next Scheduled</div><div class="kv">Mar 20</div></div><div class="ki pu">📅</div></div>
+    </div>
+    <div class="tlb">
+      <div class="tlb-l"><select style="width:auto;padding:8px 12px"><option>All Counts</option><option>In Progress</option><option>Completed</option><option>Scheduled</option></select></div>
+      <div class="tlb-r"><button class="btn btn-p btn-sm" onclick="openM('newCycleM')">+ New Cycle Count</button></div>
+    </div>
+    <div id="cycleCounts"></div>
+  </div>
+
+  <!-- ════ MOVEMENT TRACKER ════ -->
+  <div class="pg" id="pg-movement">
+    <div class="tlb">
+      <div class="tlb-l">
+        <div class="is"><span>🔍</span><input type="text" placeholder="Search SKU / product…"/></div>
+        <select style="width:auto;padding:8px 12px"><option value="">All Types</option><option>sale</option><option>purchase</option><option>return</option><option>adjustment</option><option>transfer</option></select>
+        <input type="date" style="width:auto;padding:8px 12px"/>
+        <input type="date" style="width:auto;padding:8px 12px"/>
+      </div>
+      <div class="tlb-r"><button class="btn btn-o btn-sm" onclick="expMovCSV()">📊 Export</button></div>
+    </div>
+    <div class="cd">
+      <div class="tw"><table>
+        <thead><tr><th>Date/Time</th><th>Product</th><th>SKU</th><th>Type</th><th>Qty Change</th><th>Before</th><th>After</th><th>Reference</th><th>Location</th><th>User</th></tr></thead>
+        <tbody id="movB"></tbody>
+      </table></div>
+      <div class="pgn" id="movPgn"></div>
+    </div>
+  </div>
+
+  <!-- ════ DISPATCH ORDERS ════ -->
+  <div class="pg" id="pg-dispatch">
+    <div class="kg" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+      <div class="kc"><div><div class="kl">Unassigned</div><div class="kv" id="unassigned-count">5</div><div class="kch dn">Need dispatch</div></div><div class="ki or">📋</div></div>
+      <div class="kc"><div><div class="kl">Routes Built Today</div><div class="kv">4</div></div><div class="ki bl">🗺️</div></div>
+      <div class="kc"><div><div class="kl">In Transit</div><div class="kv">8</div><div class="kch up">On route</div></div><div class="ki bl">🚚</div></div>
+      <div class="kc"><div><div class="kl">Delivered Today</div><div class="kv">14</div><div class="kch up">↑ 3 vs yesterday</div></div><div class="ki gr">✅</div></div>
+      <div class="kc"><div><div class="kl">Failed Delivery</div><div class="kv">1</div><div class="kch dn">Needs reattempt</div></div><div class="ki re">❌</div></div>
+    </div>
+
+    <!-- Sub-tabs -->
+    <div class="tabs">
+      <button class="tab active" onclick="dispTab('unassigned',this)">📋 Unassigned Orders</button>
+      <button class="tab" onclick="dispTab('builder',this)">🗺️ Route Builder</button>
+      <button class="tab" onclick="dispTab('active',this)">🚚 Active Routes</button>
+    </div>
+
+    <!-- UNASSIGNED -->
+    <div id="disp-unassigned">
+      <div class="tlb">
+        <div class="tlb-l"><div class="is"><span>🔍</span><input type="text" placeholder="Search orders…"/></div></div>
+        <div class="tlb-r">
+          <button class="btn btn-o btn-sm" onclick="toast('Auto-optimizing routes for all unassigned orders…')">⚡ Auto-Route All</button>
+          <button class="btn btn-p btn-sm" onclick="openM('bulkAssignM')">+ Bulk Assign</button>
+        </div>
+      </div>
+      <div class="cd">
+        <div class="tw"><table>
+          <thead><tr><th><input type="checkbox"/></th><th>Order</th><th>Customer</th><th>Address</th><th>Weight</th><th>Priority</th><th>Suggested Driver</th><th>Action</th></tr></thead>
+          <tbody id="unassignedB"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- ROUTE BUILDER -->
+    <div id="disp-builder" style="display:none">
+      <div class="g2" style="align-items:start">
+        <!-- Left: build route -->
+        <div>
+          <div class="cd mb5">
+            <div class="cd-hd"><div class="cd-t">🗺️ Build New Route</div></div>
+            <div class="cd-b">
+              <div class="fr">
+                <div class="fg"><label class="fl">Assign Driver *</label>
+                  <select id="rbDriver">
+                    <option>Mohammed Al-Rashid — Van NX-001 (45% loaded)</option>
+                    <option>Ahmad Hassan — Truck NX-002 (60% loaded)</option>
+                    <option>Ravi Kumar — Pickup NX-003 (20% loaded)</option>
+                    <option>Sanjay Patel — Motorcycle NX-005 (75% loaded)</option>
+                  </select>
+                </div>
+                <div class="fg"><label class="fl">Route Date</label><input type="date" id="rbDate"/></div>
+              </div>
+              <div class="fr">
+                <div class="fg"><label class="fl">Start Location</label><input type="text" id="rbStart" value="Warehouse A — Mirpur, Dhaka"/></div>
+                <div class="fg"><label class="fl">End Location</label><select id="rbEnd"><option>Return to Warehouse A</option><option>Return to Warehouse B</option><option>Driver Home (end of shift)</option></select></div>
+              </div>
+              <div class="fg"><label class="fl">Optimization Priority</label>
+                <div style="display:flex;gap:8px;flex-wrap:wrap">
+                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--pl);padding:7px 12px;border-radius:7px;border:1.5px solid var(--primary)"><input type="radio" name="optMode" checked style="width:auto"/> Shortest distance</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--sur2);padding:7px 12px;border-radius:7px;border:1.5px solid var(--bor)"><input type="radio" name="optMode" style="width:auto"/> Fastest time</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--sur2);padding:7px 12px;border-radius:7px;border:1.5px solid var(--bor)"><input type="radio" name="optMode" style="width:auto"/> Priority first</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="cd">
+            <div class="cd-hd">
+              <div class="cd-t">Route Stops <span style="color:var(--muted);font-weight:400;font-size:12px" id="stopCount">(0 stops)</span></div>
+              <button class="btn btn-o btn-sm" onclick="openM('addStopM')">+ Add Stop</button>
+            </div>
+            <div class="cd-b" id="routeStopsList">
+              <div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">No stops added. Click + Add Stop to build your route.</div>
+            </div>
+            <div style="padding:14px 18px;border-top:1px solid var(--bor);display:flex;justify-content:space-between;align-items:center">
+              <div style="font-size:13px;color:var(--muted)">Est. distance: <strong id="routeDist">—</strong> &nbsp;·&nbsp; Est. time: <strong id="routeTime">—</strong></div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-o btn-sm" onclick="optimizeRoute()">⚡ Optimize Order</button>
+                <button class="btn btn-p btn-sm" onclick="dispatchRoute()">🚀 Dispatch Route</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Right: available orders to add -->
+        <div class="cd">
+          <div class="cd-hd"><div class="cd-t">Available Orders to Add</div></div>
+          <div class="cd-b" style="padding:0">
+            <div class="tw"><table>
+              <thead><tr><th>Order</th><th>Customer</th><th>Zone</th><th>Weight</th><th>Priority</th><th></th></tr></thead>
+              <tbody id="availableOrdersB"></tbody>
+            </table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVE ROUTES -->
+    <div id="disp-active" style="display:none">
+      <div id="activeRoutesCards"></div>
+    </div>
+  </div>
+
+  <!-- ════ DRIVER MANAGEMENT ════ -->
+  <div class="pg" id="pg-drivers">
+    <div class="tlb">
+      <div class="tlb-l"><div class="is"><span>🔍</span><input type="text" placeholder="Search drivers…"/></div><select style="width:auto;padding:8px 12px"><option>All Status</option><option>active</option><option>on_route</option><option>off_duty</option></select></div>
+      <div class="tlb-r"><button class="btn btn-p btn-sm" onclick="openM('addDriverM')">+ Add Driver</button></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px" id="driversGrid"></div>
+  </div>
+
+  <!-- ════ LAST-MILE TRACKING & POD ════ -->
+  <div class="pg" id="pg-utl">
+    <div class="kg" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
+      <div class="kc"><div><div class="kl">Active Routes</div><div class="kv">4</div><div class="kch up">In progress</div></div><div class="ki bl">🗺️</div></div>
+      <div class="kc"><div><div class="kl">Stops Today</div><div class="kv">47</div><div class="kch up">32 completed</div></div><div class="ki gr">📍</div></div>
+      <div class="kc"><div><div class="kl">Delivered</div><div class="kv">32</div><div class="kch up">68% done</div></div><div class="ki gr">✅</div></div>
+      <div class="kc"><div><div class="kl">Failed Attempts</div><div class="kv">2</div><div class="kch dn">Need reattempt</div></div><div class="ki re">❌</div></div>
+      <div class="kc"><div><div class="kl">On-Time Rate</div><div class="kv">94%</div><div class="kch up">↑ 2%</div></div><div class="ki pu">⏱️</div></div>
+    </div>
+
+    <!-- Tabs: Routes | POD Log | Fleet -->
+    <div class="tabs" id="utlTabs">
+      <button class="tab active" onclick="utlTab('routes',this)">🗺️ Live Routes</button>
+      <button class="tab" onclick="utlTab('pod',this)">📸 POD Log</button>
+      <button class="tab" onclick="utlTab('fleet',this)">🚛 Fleet & Vehicles</button>
+      <button class="tab" onclick="utlTab('analytics',this)">📊 Delivery Analytics</button>
+    </div>
+
+    <!-- LIVE ROUTES -->
+    <div id="utl-routes">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:18px" id="routeCards"></div>
+    </div>
+
+    <!-- POD LOG -->
+    <div id="utl-pod" style="display:none">
+      <div class="tlb">
+        <div class="tlb-l">
+          <div class="is"><span>🔍</span><input type="text" placeholder="Search order / driver…"/></div>
+          <select style="width:auto;padding:8px 12px"><option value="">All Types</option><option>Delivered</option><option>Failed</option><option>Partial</option></select>
+          <input type="date" style="width:auto;padding:8px 12px"/>
+        </div>
+        <div class="tlb-r"><button class="btn btn-o btn-sm" onclick="expPODCSV()">📊 Export POD Log</button></div>
+      </div>
+      <div class="cd">
+        <div class="tw"><table>
+          <thead><tr><th>Order</th><th>Driver</th><th>Customer</th><th>Address</th><th>Delivered At</th><th>POD Type</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="podLogB"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- FLEET -->
+    <div id="utl-fleet" style="display:none">
+      <div class="tlb">
+        <div class="tlb-l"></div>
+        <div class="tlb-r"><button class="btn btn-p btn-sm" onclick="openM('addVehicleM')">+ Add Vehicle</button></div>
+      </div>
+      <div id="vehicleCards"></div>
+    </div>
+
+    <!-- ANALYTICS -->
+    <div id="utl-analytics" style="display:none">
+      <div class="g2">
+        <div class="cd"><div class="cd-hd"><div class="cd-t">Delivery Success Rate (7 days)</div></div><div class="cd-b"><div style="height:200px"><canvas id="delivSuccC"></canvas></div></div></div>
+        <div class="cd"><div class="cd-hd"><div class="cd-t">Average Time per Stop</div></div><div class="cd-b">
+          <div style="display:flex;flex-direction:column;gap:12px;margin-top:4px">
+            <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Mohammed Al-Rashid</span><span style="font-weight:700">8.2 min/stop</span></div><div class="pw"><div class="pf" style="width:82%"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Ahmad Hassan</span><span style="font-weight:700">11.4 min/stop</span></div><div class="pw"><div class="pf" style="width:65%;background:#f59e0b"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Ravi Kumar</span><span style="font-weight:700">6.8 min/stop</span></div><div class="pw"><div class="pf" style="width:90%;background:#22c55e"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Sanjay Patel</span><span style="font-weight:700">5.1 min/stop</span></div><div class="pw"><div class="pf" style="width:96%;background:#22c55e"></div></div></div>
+          </div>
+        </div></div>
+      </div>
+      <div class="cd mb5"><div class="cd-hd"><div class="cd-t">Failure Reason Breakdown</div></div><div class="cd-b">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
+          <div style="background:#fee2e2;border-radius:10px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:800;color:#dc2626">38%</div><div style="font-size:12px;color:#991b1b;margin-top:4px">Customer Not Home</div></div>
+          <div style="background:#fef3c7;border-radius:10px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:800;color:#d97706">24%</div><div style="font-size:12px;color:#92400e;margin-top:4px">Wrong Address</div></div>
+          <div style="background:#ffedd5;border-radius:10px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:800;color:#ea580c">18%</div><div style="font-size:12px;color:#9a3412;margin-top:4px">Refused Delivery</div></div>
+          <div style="background:#f3e8ff;border-radius:10px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:800;color:#7c3aed">12%</div><div style="font-size:12px;color:#5b21b6;margin-top:4px">Access Issue</div></div>
+          <div style="background:#f1f5f9;border-radius:10px;padding:14px;text-align:center"><div style="font-size:28px;font-weight:800;color:#475569">8%</div><div style="font-size:12px;color:#334155;margin-top:4px">Other</div></div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- ════ ANALYTICS ════ -->
+  <div class="pg" id="pg-analytics">
+    <div class="kg">
+      <div class="kc"><div><div class="kl">Conversion Rate</div><div class="kv">3.24%</div><div class="kch up">↑ 0.4%</div></div><div class="ki gr">🎯</div></div>
+      <div class="kc"><div><div class="kl">Avg Session</div><div class="kv">4m 12s</div><div class="kch up">↑ 22s</div></div><div class="ki bl">⏱️</div></div>
+      <div class="kc"><div><div class="kl">Cart Abandonment</div><div class="kv">68.4%</div><div class="kch dn">↓ 2.1%</div></div><div class="ki or">🛒</div></div>
+      <div class="kc"><div><div class="kl">Return Rate</div><div class="kv">4.2%</div><div class="kch up">↓ improved</div></div><div class="ki pu">↩️</div></div>
+    </div>
+    <div class="g2">
+      <div class="cd"><div class="cd-hd"><div class="cd-t">Monthly Revenue</div><button class="btn btn-o btn-sm" onclick="expRevCSV()">📊 Export</button></div><div class="cd-b"><div style="height:230px"><canvas id="mrevC"></canvas></div></div></div>
+      <div class="cd"><div class="cd-hd"><div class="cd-t">Revenue by Category</div></div><div class="cd-b"><div style="height:230px"><canvas id="catC"></canvas></div></div></div>
+    </div>
+  </div>
+
+  <!-- ════ REPORTS ════ -->
+  <div class="pg" id="pg-reports">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px">
+      <div class="rpc"><div class="rpc-ico">💰</div><div class="rpc-t">Revenue Report</div><div class="rpc-d">Daily/weekly/monthly revenue, trend analysis, category breakdown.</div><div class="rpc-act"><button class="eb csv" onclick="expRevCSV()">📊 CSV</button><button class="eb pdf" onclick="expPDF('Revenue')">📄 PDF</button><button class="eb xl" onclick="expXL('Revenue')">📗 Excel</button><button class="eb pr" onclick="printRep('Revenue')">🖨️ Print</button></div></div>
+      <div class="rpc"><div class="rpc-ico">📦</div><div class="rpc-t">Orders Report</div><div class="rpc-d">Volume, fulfilment rate, cancellations, avg processing time.</div><div class="rpc-act"><button class="eb csv" onclick="expOrdCSV()">📊 CSV</button><button class="eb pdf" onclick="expPDF('Orders')">📄 PDF</button><button class="eb xl" onclick="expXL('Orders')">📗 Excel</button><button class="eb pr" onclick="printRep('Orders')">🖨️ Print</button></div></div>
+      <div class="rpc"><div class="rpc-ico">↩️</div><div class="rpc-t">Returns Report</div><div class="rpc-d">RMA volume, resolution types, refund amounts, return reasons heatmap.</div><div class="rpc-act"><button class="eb csv" onclick="expReturnsCSV()">📊 CSV</button><button class="eb pdf" onclick="expPDF('Returns')">📄 PDF</button><button class="eb xl" onclick="expXL('Returns')">📗 Excel</button><button class="eb pr" onclick="printRep('Returns')">🖨️ Print</button></div></div>
+      <div class="rpc"><div class="rpc-ico">📋</div><div class="rpc-t">Inventory Report</div><div class="rpc-d">SOH, movement summary, slow movers, reorder points, inventory value.</div><div class="rpc-act"><button class="eb csv" onclick="expInvCSV()">📊 CSV</button><button class="eb pdf" onclick="expPDF('Inventory')">📄 PDF</button><button class="eb xl" onclick="expXL('Inventory')">📗 Excel</button><button class="eb pr" onclick="printRep('Inventory')">🖨️ Print</button></div></div>
+      <div class="rpc"><div class="rpc-ico">🚚</div><div class="rpc-t">Logistics Report</div><div class="rpc-d">Delivery performance, driver productivity, UTL utilization, on-time rate.</div><div class="rpc-act"><button class="eb csv" onclick="expLogiCSV()">📊 CSV</button><button class="eb pdf" onclick="expPDF('Logistics')">📄 PDF</button><button class="eb xl" onclick="expXL('Logistics')">📗 Excel</button><button class="eb pr" onclick="printRep('Logistics')">🖨️ Print</button></div></div>
+      <div class="rpc"><div class="rpc-ico">📧</div><div class="rpc-t">Email Report</div><div class="rpc-d">Schedule and send any report to admin email — daily, weekly, or monthly.</div><div class="rpc-act"><button class="btn btn-p btn-sm" onclick="openM('emailRepM')">✉️ Configure</button></div></div>
+    </div>
+  </div>
+
+  <!-- ════ SETTINGS ════ -->
+  <div class="pg" id="pg-settings">
+    <div class="g2">
+      <div class="cd mb5"><div class="cd-hd"><div class="cd-t">General Settings</div></div><div class="cd-b">
+        <div class="fg"><label class="fl">Store Name</label><input type="text" value="NEXUS Commerce"/></div>
+        <div class="fg"><label class="fl">Store Email</label><input type="email" value="hello@nexus.com"/></div>
+        <div class="fg"><label class="fl">Currency</label><select><option>USD ($)</option><option>BDT (৳)</option><option>OMR (﷼)</option></select></div>
+        <div class="fg"><label class="fl">Timezone</label><select><option>Asia/Dhaka (GMT+6)</option><option>Asia/Muscat (GMT+4)</option><option>UTC</option></select></div>
+        <button class="btn btn-p" onclick="toast('✓ Settings saved')">Save Changes</button>
+      </div></div>
+      <div class="cd mb5"><div class="cd-hd"><div class="cd-t">API & Integrations</div></div><div class="cd-b">
+        <div class="fg"><label class="fl">Medusa.js URL</label><input type="text" value="https://api.nexus.com"/></div>
+        <div class="fg"><label class="fl">Stripe Key</label><input type="text" value="pk_live_••••••••••••"/></div>
+        <div class="fg"><label class="fl">Redis URL</label><input type="text" value="redis://••••••••"/></div>
+        <div class="fg"><label class="fl">Warehouse Webhook</label><input type="text" value="https://wms.partner.com/webhook"/></div>
+        <button class="btn btn-p" onclick="toast('✓ Keys updated')">Update Keys</button>
+      </div></div>
+    </div>
+  </div>
+</div><!-- /main -->
+
+<!-- ══════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════ -->
+
+<!-- ORDER VIEW -->
+<div class="mo" id="orderViewM">
+  <div class="md md-xl">
+    <div class="mh">
+      <div class="mt" id="ovTitle">📦 Order Details</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-o btn-sm" onclick="printOrderDet()">🖨️ Print</button>
+        <button class="btn btn-p btn-sm" onclick="openOrderEdit()">✏️ Edit</button>
+        <button class="mc" onclick="closeM('orderViewM')">×</button>
+      </div>
+    </div>
+    <div class="mb_" id="ovBody"></div>
+  </div>
+</div>
+
+<!-- ORDER EDIT -->
+<div class="mo" id="orderEditM">
+  <div class="md md-lg">
+    <div class="mh"><div class="mt">✏️ Edit Order <span id="oeId" style="color:var(--primary)"></span></div><button class="mc" onclick="closeM('orderEditM')">×</button></div>
+    <div class="mb_">
+      <div class="fr"><div class="fg"><label class="fl">Customer Name</label><input type="text" id="oeName"/></div><div class="fg"><label class="fl">Email</label><input type="email" id="oeEmail"/></div></div>
+      <div class="fg"><label class="fl">Shipping Address</label><input type="text" id="oeAddr"/></div>
+      <div class="fr"><div class="fg"><label class="fl">Payment Status</label><select id="oePay"><option value="paid">Paid</option><option value="pending">Pending</option><option value="failed">Failed</option></select></div><div class="fg"><label class="fl">Fulfillment Status</label><select id="oeFul"><option value="processing">Processing</option><option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option></select></div></div>
+      <div class="fr"><div class="fg"><label class="fl">Tracking Number</label><input type="text" id="oeTrk"/></div><div class="fg"><label class="fl">Carrier</label><select id="oeCarr"><option>DHL Express</option><option>FedEx</option><option>UPS</option><option>Bangladesh Post</option><option>Sundarban Courier</option></select></div></div>
+      <div class="fg"><label class="fl">Internal Notes</label><textarea id="oeNotes" rows="3"></textarea></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('orderEditM')">Cancel</button><button class="btn btn-d btn-sm" onclick="cancelOrdFromEdit()">Cancel Order</button><button class="btn btn-p" onclick="saveOrdEdit()">Save Changes</button></div>
+  </div>
+</div>
+
+<!-- CREATE RETURN -->
+<div class="mo" id="createReturnM">
+  <div class="md md-lg">
+    <div class="mh"><div class="mt">↩️ Create Return (RMA)</div><button class="mc" onclick="closeM('createReturnM')">×</button></div>
+    <div class="mb_">
+      <div class="fr"><div class="fg"><label class="fl">Original Order ID *</label><input type="text" id="rmaOrderId" placeholder="#ORD-8821"/></div><div class="fg"><label class="fl">Customer Name</label><input type="text" id="rmaCustomer" placeholder="Auto-filled"/></div></div>
+      <div class="cd mb5" style="padding:14px 16px;background:var(--sur2)">
+        <div style="font-size:12px;font-weight:700;margin-bottom:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Select Items to Return</div>
+        <div id="rmaItemSel">
+          <label style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:7px;cursor:pointer;margin-bottom:6px;background:var(--sur)"><input type="checkbox" style="width:auto"/> <span class="lii" style="width:32px;height:32px;font-size:1.2rem">⌨️</span> <div><div style="font-size:13px;font-weight:600">Pro Mechanical Keyboard</div><div style="font-size:11px;color:var(--muted)">ELEC-001 · Qty: 1 · $149.99</div></div><input type="number" value="1" min="1" max="1" style="width:60px;margin-left:auto;padding:5px 8px"/></label>
+          <label style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:7px;cursor:pointer;background:var(--sur)"><input type="checkbox" style="width:auto"/> <span class="lii" style="width:32px;height:32px;font-size:1.2rem">🔌</span> <div><div style="font-size:13px;font-weight:600">USB-C Hub (7-in-1)</div><div style="font-size:11px;color:var(--muted)">ELEC-004 · Qty: 1 · $79.99</div></div><input type="number" value="1" min="1" max="1" style="width:60px;margin-left:auto;padding:5px 8px"/></label>
+        </div>
+      </div>
+      <div class="fr"><div class="fg"><label class="fl">Return Reason *</label><select id="rmaReason"><option>Defective/Damaged</option><option>Wrong item received</option><option>Not as described</option><option>Changed mind</option><option>Size/fit issue</option><option>No longer needed</option><option>Duplicate order</option></select></div><div class="fg"><label class="fl">Item Condition</label><select id="rmaCond"><option>Unopened</option><option>Like new</option><option>Used — good condition</option><option>Used — damaged</option><option>Not received</option></select></div></div>
+      <div class="fr"><div class="fg"><label class="fl">Resolution *</label><select id="rmaRes"><option value="refund">Refund to original payment</option><option value="store_credit">Store credit</option><option value="exchange">Exchange for different item</option><option value="repair">Repair &amp; return</option></select></div><div class="fg"><label class="fl">Return Shipping Paid By</label><select><option>Customer</option><option>Store (prepaid label)</option></select></div></div>
+      <div class="fg"><label class="fl">Notes for Warehouse</label><textarea rows="2" placeholder="Special inspection instructions, fragile items, etc."></textarea></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('createReturnM')">Cancel</button><button class="btn btn-p" onclick="createReturn()">Create RMA &amp; Approve</button></div>
+  </div>
+</div>
+
+<!-- CREATE EXCHANGE -->
+<div class="mo" id="createExchangeM">
+  <div class="md md-lg">
+    <div class="mh"><div class="mt">🔄 Create Exchange</div><button class="mc" onclick="closeM('createExchangeM')">×</button></div>
+    <div class="mb_">
+      <div class="fr"><div class="fg"><label class="fl">Original Order ID *</label><input type="text" placeholder="#ORD-XXXX"/></div><div class="fg"><label class="fl">Customer Email</label><input type="email" placeholder="customer@email.com"/></div></div>
+      <div class="fg"><label class="fl">Item Being Returned</label><input type="text" placeholder="e.g. Premium Hoodie — Size M (APPRL-001)"/></div>
+      <div class="fr"><div class="fg"><label class="fl">Return Reason</label><select><option>Wrong size</option><option>Wrong color</option><option>Defective</option><option>Preference change</option></select></div><div class="fg"><label class="fl">Return Condition</label><select><option>Unopened</option><option>Like new</option><option>Used</option></select></div></div>
+      <div class="fg"><label class="fl">Replacement Item</label><input type="text" placeholder="e.g. Premium Hoodie — Size L (APPRL-001)"/></div>
+      <div class="fr"><div class="fg"><label class="fl">Price Difference</label><input type="number" placeholder="0.00" step=".01"/></div><div class="fg"><label class="fl">Charge/Credit Method</label><select><option>No difference</option><option>Charge customer</option><option>Credit customer</option></select></div></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('createExchangeM')">Cancel</button><button class="btn btn-p" onclick="createExchange()">Create Exchange</button></div>
+  </div>
+</div>
+
+<!-- ADD ORDER -->
+<div class="mo" id="addOrderM">
+  <div class="md md-lg">
+    <div class="mh"><div class="mt">+ New Order</div><button class="mc" onclick="closeM('addOrderM')">×</button></div>
+    <div class="mb_">
+      <div class="fr"><div class="fg"><label class="fl">Customer Email *</label><input type="email" placeholder="customer@email.com"/></div><div class="fg"><label class="fl">Phone</label><input type="text" placeholder="+880 1700 000000"/></div></div>
+      <div class="fg"><label class="fl">Shipping Address *</label><input type="text" placeholder="123 Street, City, Country"/></div>
+      <div class="fr"><div class="fg"><label class="fl">Product SKU</label><input type="text" placeholder="ELEC-001"/></div><div class="fg"><label class="fl">Quantity</label><input type="number" value="1" min="1"/></div></div>
+      <div class="fr"><div class="fg"><label class="fl">Payment Method</label><select><option>Stripe Card</option><option>PayPal</option><option>Manual</option></select></div><div class="fg"><label class="fl">Discount Code</label><input type="text" placeholder="NEXUS10"/></div></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('addOrderM')">Cancel</button><button class="btn btn-p" onclick="closeM('addOrderM');toast('✓ Order created successfully')">Create Order</button></div>
+  </div>
+</div>
+
+<!-- ADJUST STOCK -->
+<div class="mo" id="adjStockM">
+  <div class="md">
+    <div class="mh"><div class="mt">📋 Adjust Stock</div><button class="mc" onclick="closeM('adjStockM')">×</button></div>
+    <div class="mb_">
+      <div class="fg"><label class="fl">Product SKU</label><select><option>ELEC-001 – Pro Mechanical Keyboard</option><option>HOME-001 – Ergonomic Desk Chair</option><option>ELEC-003 – 4K Webcam Pro</option></select></div>
+      <div class="fr"><div class="fg"><label class="fl">Location</label><select><option>Warehouse A – Dhaka</option><option>Warehouse B – Chittagong</option></select></div><div class="fg"><label class="fl">Adjustment Type</label><select><option>Add Stock</option><option>Remove Stock</option><option>Set Exact</option></select></div></div>
+      <div class="fr"><div class="fg"><label class="fl">Quantity</label><input type="number" placeholder="0" min="0"/></div><div class="fg"><label class="fl">Reason</label><input type="text" placeholder="e.g. Supplier delivery"/></div></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('adjStockM')">Cancel</button><button class="btn btn-p" onclick="closeM('adjStockM');toast('✓ Stock adjusted and synced')">Apply</button></div>
+  </div>
+</div>
+
+<!-- NEW CYCLE COUNT -->
+<div class="mo" id="newCycleM">
+  <div class="md">
+    <div class="mh"><div class="mt">📊 New Cycle Count</div><button class="mc" onclick="closeM('newCycleM')">×</button></div>
+    <div class="mb_">
+      <div class="fg"><label class="fl">Count Name</label><input type="text" placeholder="e.g. Q1 2026 Full Count"/></div>
+      <div class="fr"><div class="fg"><label class="fl">Method</label><select><option>ABC Analysis (high-value first)</option><option>Location-based (zone by zone)</option><option>Random Sample</option><option>Full Physical Count</option></select></div><div class="fg"><label class="fl">Schedule Date</label><input type="date"/></div></div>
+      <div class="fg"><label class="fl">Scope</label><select><option>All SKUs — All Locations</option><option>Warehouse A only</option><option>Warehouse B only</option><option>Electronics category only</option><option>Low-stock items only</option></select></div>
+      <div class="fg"><label class="fl">Assigned To</label><select><option>Warehouse Team A</option><option>Warehouse Team B</option><option>External Auditor</option></select></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('newCycleM')">Cancel</button><button class="btn btn-p" onclick="closeM('newCycleM');toast('📊 Cycle count scheduled successfully')">Schedule Count</button></div>
+  </div>
+</div>
+
+<!-- ADD DRIVER -->
+<div class="mo" id="addDriverM">
+  <div class="md">
+    <div class="mh"><div class="mt">+ Add Driver</div><button class="mc" onclick="closeM('addDriverM')">×</button></div>
+    <div class="mb_">
+      <div class="fr"><div class="fg"><label class="fl">Full Name *</label><input type="text" placeholder="Mohammed Al-Rashid"/></div><div class="fg"><label class="fl">Phone *</label><input type="text" placeholder="+968 9123 4567"/></div></div>
+      <div class="fr"><div class="fg"><label class="fl">License Number</label><input type="text" placeholder="OM-DL-123456"/></div><div class="fg"><label class="fl">Vehicle Assigned</label><select><option>Select vehicle…</option><option>Van — NX-001 (2.5T)</option><option>Truck — NX-002 (5T)</option><option>Pickup — NX-003 (1T)</option></select></div></div>
+      <div class="fr"><div class="fg"><label class="fl">Shift</label><select><option>Morning (6AM–2PM)</option><option>Afternoon (2PM–10PM)</option><option>Night (10PM–6AM)</option></select></div><div class="fg"><label class="fl">Zone Coverage</label><input type="text" placeholder="Muscat Central, Qurum"/></div></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('addDriverM')">Cancel</button><button class="btn btn-p" onclick="closeM('addDriverM');toast('✓ Driver added to fleet')">Add Driver</button></div>
+  </div>
+</div>
+
+<!-- ADD VEHICLE -->
+<div class="mo" id="addVehicleM">
+  <div class="md">
+    <div class="mh"><div class="mt">🚛 Add Vehicle</div><button class="mc" onclick="closeM('addVehicleM')">×</button></div>
+    <div class="mb_">
+      <div class="fr"><div class="fg"><label class="fl">Vehicle ID</label><input type="text" placeholder="NX-007"/></div><div class="fg"><label class="fl">License Plate</label><input type="text" placeholder="AB 1234 CD"/></div></div>
+      <div class="fr"><div class="fg"><label class="fl">Type</label><select><option>Van (2T)</option><option>Light Truck (5T)</option><option>Heavy Truck (10T)</option><option>Motorcycle</option></select></div><div class="fg"><label class="fl">Max Capacity (kg)</label><input type="number" placeholder="2000"/></div></div>
+      <div class="fr"><div class="fg"><label class="fl">Year</label><input type="text" placeholder="2022"/></div><div class="fg"><label class="fl">Next Service Due</label><input type="date"/></div></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('addVehicleM')">Cancel</button><button class="btn btn-p" onclick="closeM('addVehicleM');toast('✓ Vehicle added to fleet')">Add Vehicle</button></div>
+  </div>
+</div>
+
+<!-- ASSIGN DRIVER MODAL -->
+<div class="mo" id="assignDriverM">
+  <div class="md">
+    <div class="mh"><div class="mt">🚚 Assign Driver to Order</div><button class="mc" onclick="closeM('assignDriverM')">×</button></div>
+    <div class="mb_">
+      <div style="background:var(--sur2);border-radius:9px;padding:14px;margin-bottom:16px;font-size:13px">
+        <div style="font-weight:600;margin-bottom:4px" id="assignOrdInfo">Order: #ORD-8781 — Priya Singh</div>
+        <div style="color:var(--muted)">8 Koregaon Park, Pune · 2 items · 2.8kg · Normal priority</div>
+      </div>
+      <div class="fg"><label class="fl">Select Driver</label><select id="assignDrvSel">
+        <option>Mohammed Al-Rashid — Van NX-001 — 45% loaded</option>
+        <option>Ahmad Hassan — Truck NX-002 — 60% loaded</option>
+        <option>Ravi Kumar — Pickup NX-003 — 20% loaded</option>
+      </select></div>
+      <div class="fr"><div class="fg"><label class="fl">Delivery Priority</label><select><option>Normal</option><option>Express (same-day)</option><option>Urgent</option></select></div><div class="fg"><label class="fl">Expected Delivery</label><input type="date"/></div></div>
+      <div class="fg"><label class="fl">Notes for Driver</label><input type="text" placeholder="Customer prefers afternoon, call before delivery"/></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('assignDriverM')">Cancel</button><button class="btn btn-p" onclick="closeM('assignDriverM');toast('✓ Order assigned to driver')">Assign & Dispatch</button></div>
+  </div>
+</div>
+
+<!-- ADD BUNDLE ITEM -->
+<div class="mo" id="addBundleItemM">
+  <div class="md">
+    <div class="mh"><div class="mt">Add Product to Bundle</div><button class="mc" onclick="closeM('addBundleItemM')">×</button></div>
+    <div class="mb_">
+      <div class="fg"><label class="fl">Select Product</label><select id="biProd"><option value="1">⌨️ Pro Mechanical Keyboard — $149.99</option><option value="2">🎧 Wireless Headphones — $229.99</option><option value="3">📷 4K Webcam Pro — $119.99</option><option value="4">🪑 Ergonomic Desk Chair — $389.99</option><option value="6">👕 Premium Hoodie — $89.99</option></select></div>
+      <div class="fg"><label class="fl">Quantity in Bundle</label><input type="number" id="biQty" value="1" min="1" max="10"/></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('addBundleItemM')">Cancel</button><button class="btn btn-p" onclick="addBundleItem()">Add to Bundle</button></div>
+  </div>
+</div>
+
+<!-- EMAIL REPORT -->
+<div class="mo" id="emailRepM">
+  <div class="md">
+    <div class="mh"><div class="mt">✉️ Email Report</div><button class="mc" onclick="closeM('emailRepM')">×</button></div>
+    <div class="mb_">
+      <div class="fg"><label class="fl">Recipient</label><input type="email" value="admin@nexus.com"/></div>
+      <div class="fr"><div class="fg"><label class="fl">Report Type</label><select><option>Revenue</option><option>Orders</option><option>Returns</option><option>Inventory</option><option>Logistics</option><option>Full Summary</option></select></div><div class="fg"><label class="fl">Date Range</label><select><option>Last 7 days</option><option>Last 30 days</option><option>This month</option><option>Last quarter</option></select></div></div>
+      <div class="fr"><div class="fg"><label class="fl">Format</label><select><option>PDF</option><option>Excel</option><option>CSV</option></select></div><div class="fg"><label class="fl">Schedule</label><select><option>Send now</option><option>Daily</option><option>Weekly</option><option>Monthly</option></select></div></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('emailRepM')">Cancel</button><button class="btn btn-p" onclick="closeM('emailRepM');toast('✉️ Report sent to admin@nexus.com')">Send Report</button></div>
+  </div>
+</div>
+
+<div class="toast" id="TOAST"></div>
+
+<script>
+// ════════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════════
+const ORDERS = [
+  {id:'#ORD-8821',customer:'Aminur Rahman',email:'a.rahman@email.com',phone:'+880 1711 234567',date:'Mar 07, 2026',items:2,total:229.98,payment:'paid',fulfillment:'delivered',address:'12 Mirpur Rd, Dhaka 1216, BD',tracking:'DHL-9876543210',carrier:'DHL Express',notes:'VIP customer',products:[{name:'Pro Mechanical Keyboard',sku:'ELEC-001',qty:1,price:149.99,emoji:'⌨️'},{name:'USB-C Hub',sku:'ELEC-004',qty:1,price:79.99,emoji:'🔌'}]},
+  {id:'#ORD-8810',customer:'Sarah Chen',email:'s.chen@email.com',phone:'+1 212 555 0101',date:'Mar 03, 2026',items:1,total:229.99,payment:'paid',fulfillment:'shipped',address:'45 Park Ave, New York NY 10022',tracking:'FDX-7654321098',carrier:'FedEx',notes:'',products:[{name:'Wireless Headphones',sku:'ELEC-002',qty:1,price:229.99,emoji:'🎧'}]},
+  {id:'#ORD-8794',customer:"Marcus O'Brien",email:'m.obrien@email.com',phone:'+44 20 7946 0958',date:'Feb 26, 2026',items:2,total:449.98,payment:'paid',fulfillment:'delivered',address:'22 Baker St, London W1U',tracking:'UPS-4321098765',carrier:'UPS',notes:'',products:[{name:'Ergonomic Desk Chair',sku:'HOME-001',qty:1,price:389.99,emoji:'🪑'},{name:'LED Desk Lamp',sku:'HOME-002',qty:1,price:59.99,emoji:'💡'}]},
+  {id:'#ORD-8781',customer:'Priya Singh',email:'p.singh@email.com',phone:'+91 98765 43210',date:'Feb 19, 2026',items:2,total:179.98,payment:'paid',fulfillment:'processing',address:'8 Koregaon Park, Pune 411001, IN',tracking:'',carrier:'',notes:'',products:[{name:'Premium Hoodie',sku:'APPRL-001',qty:2,price:89.99,emoji:'👕'}]},
+  {id:'#ORD-8762',customer:'James Nguyen',email:'j.nguyen@email.com',phone:'+1 415 555 0198',date:'Feb 11, 2026',items:1,total:199.99,payment:'paid',fulfillment:'delivered',address:'78 Haight St, SF CA 94102',tracking:'DHL-1234509876',carrier:'DHL Express',notes:'',products:[{name:'Minimalist Watch',sku:'ACC-001',qty:1,price:199.99,emoji:'⌚'}]},
+  {id:'#ORD-8744',customer:'Emma Wilson',email:'e.wilson@email.com',phone:'+44 161 234 5678',date:'Feb 04, 2026',items:2,total:189.98,payment:'failed',fulfillment:'cancelled',address:'19 Canal St, Manchester M1',tracking:'',carrier:'',notes:'Stripe insufficient_funds',products:[{name:'Leather Wallet',sku:'ACC-002',qty:1,price:49.99,emoji:'👛'},{name:'Running Sneakers',sku:'APPRL-002',qty:1,price:139.99,emoji:'👟'}]},
+  {id:'#ORD-8730',customer:'Karim Al-Hassan',email:'k.alhassan@email.com',phone:'+971 50 123 4567',date:'Jan 28, 2026',items:2,total:219.98,payment:'paid',fulfillment:'delivered',address:'JBR Tower 3, Dubai, UAE',tracking:'FDX-8765432109',carrier:'FedEx',notes:'',products:[{name:'4K Webcam Pro',sku:'ELEC-003',qty:1,price:119.99,emoji:'📷'},{name:'Portable SSD',sku:'ELEC-005',qty:1,price:99.99,emoji:'💾'}]},
+  {id:'#ORD-8712',customer:'Yuki Tanaka',email:'y.tanaka@email.com',phone:'+81 3 1234 5678',date:'Jan 20, 2026',items:1,total:479.99,payment:'paid',fulfillment:'shipped',address:'2-1-1 Marunouchi, Tokyo 100',tracking:'UPS-3210987654',carrier:'UPS',notes:'International — customs cleared',products:[{name:'Bamboo Standing Desk',sku:'HOME-003',qty:1,price:479.99,emoji:'🪴'}]},
+];
+
+const PRODUCTS = [
+  {id:1,name:'Pro Mechanical Keyboard',emoji:'⌨️',cat:'electronics',price:149.99,stock:42,status:'active',sales:284,sku:'ELEC-001',desc:'Full-size mechanical keyboard with programmable RGB lighting.'},
+  {id:2,name:'Wireless Headphones',emoji:'🎧',cat:'electronics',price:229.99,stock:18,status:'active',sales:197,sku:'ELEC-002',desc:'Active noise-cancelling wireless headphones, 30hr battery.'},
+  {id:3,name:'4K Webcam Pro',emoji:'📷',cat:'electronics',price:119.99,stock:7,status:'active',sales:145,sku:'ELEC-003',desc:'4K UHD webcam with AI autofocus.'},
+  {id:4,name:'Ergonomic Desk Chair',emoji:'🪑',cat:'home',price:389.99,stock:5,status:'active',sales:89,sku:'HOME-001',desc:'Lumbar-support ergonomic chair with adjustable armrests.'},
+  {id:5,name:'LED Desk Lamp',emoji:'💡',cat:'home',price:59.99,stock:0,status:'draft',sales:112,sku:'HOME-002',desc:'Adjustable LED desk lamp with USB charging port.'},
+  {id:6,name:'Premium Hoodie',emoji:'👕',cat:'apparel',price:89.99,stock:63,status:'active',sales:201,sku:'APPRL-001',desc:'Heavyweight cotton-blend premium hoodie.'},
+  {id:7,name:'Minimalist Watch',emoji:'⌚',cat:'accessories',price:199.99,stock:12,status:'active',sales:163,sku:'ACC-001',desc:'Swiss quartz minimalist wristwatch.'},
+  {id:8,name:'Leather Wallet',emoji:'👛',cat:'accessories',price:49.99,stock:34,status:'active',sales:178,sku:'ACC-002',desc:'Full-grain leather bifold wallet.'},
+  {id:9,name:'USB-C Hub (7-in-1)',emoji:'🔌',cat:'electronics',price:79.99,stock:3,status:'active',sales:92,sku:'ELEC-004',desc:'7-in-1 USB-C docking hub with 4K HDMI.'},
+  {id:10,name:'Running Sneakers',emoji:'👟',cat:'apparel',price:139.99,stock:28,status:'active',sales:216,sku:'APPRL-002',desc:'Lightweight mesh running sneakers.'},
+];
+
+const INVENTORY = [
+  {id:1,name:'Pro Mechanical Keyboard',emoji:'⌨️',sku:'ELEC-001',location:'Warehouse A',onHand:42,reserved:5,available:37,value:6299.58},
+  {id:2,name:'Wireless Headphones',emoji:'🎧',sku:'ELEC-002',location:'Warehouse A',onHand:18,reserved:2,available:16,value:4139.82},
+  {id:3,name:'4K Webcam Pro',emoji:'📷',sku:'ELEC-003',location:'Warehouse B',onHand:7,reserved:1,available:6,value:839.93},
+  {id:4,name:'Ergonomic Desk Chair',emoji:'🪑',sku:'HOME-001',location:'Warehouse A',onHand:5,reserved:0,available:5,value:1949.95},
+  {id:5,name:'LED Desk Lamp',emoji:'💡',sku:'HOME-002',location:'Warehouse B',onHand:0,reserved:0,available:0,value:0},
+  {id:6,name:'Premium Hoodie',emoji:'👕',sku:'APPRL-001',location:'Warehouse A',onHand:63,reserved:8,available:55,value:5669.37},
+  {id:7,name:'Minimalist Watch',emoji:'⌚',sku:'ACC-001',location:'Warehouse B',onHand:12,reserved:0,available:12,value:2399.88},
+];
+
+const RETURNS = [
+  {id:'RMA-2601',orderId:'#ORD-8821',customer:'Aminur Rahman',date:'Mar 10, 2026',items:[{name:'Pro Mechanical Keyboard',sku:'ELEC-001',qty:1,price:149.99,emoji:'⌨️',reason:'Defective — key chattering',cond:'Used — damaged'}],status:'received',resolution:'refund',refundAmt:149.99,returnTracking:'DHL-RTN-4521',history:[{date:'Mar 10',event:'Return requested by customer',user:'Customer Portal'},{date:'Mar 11',event:'RMA approved — prepaid label sent',user:'Admin'},{date:'Mar 13',event:'Item received at Warehouse A',user:'Warehouse'},{date:'Mar 14',event:'Inspected — defect confirmed',user:'QC Team'}]},
+  {id:'RMA-2598',orderId:'#ORD-8810',customer:'Sarah Chen',date:'Mar 08, 2026',items:[{name:'Wireless Headphones',sku:'ELEC-002',qty:1,price:229.99,emoji:'🎧',reason:'Changed mind',cond:'Unopened'}],status:'in_transit',resolution:'store_credit',refundAmt:229.99,returnTracking:'FDX-RTN-3318',history:[{date:'Mar 08',event:'Return requested',user:'Customer'},{date:'Mar 09',event:'RMA approved',user:'Admin'},{date:'Mar 11',event:'Shipped back — in transit',user:'Carrier'}]},
+  {id:'RMA-2591',orderId:'#ORD-8794',customer:"Marcus O'Brien",date:'Mar 02, 2026',items:[{name:'LED Desk Lamp',sku:'HOME-002',qty:1,price:59.99,emoji:'💡',reason:'Not as described',cond:'Like new'},{name:'Ergonomic Desk Chair',sku:'HOME-001',qty:1,price:389.99,emoji:'🪑',reason:'Wrong item received',cond:'Unopened'}],status:'requested',resolution:'refund',refundAmt:449.98,returnTracking:'',history:[{date:'Mar 02',event:'Return requested',user:'Customer'},{date:'Mar 03',event:'Under review',user:'Admin'}]},
+  {id:'RMA-2580',orderId:'#ORD-8762',customer:'James Nguyen',date:'Feb 18, 2026',items:[{name:'Minimalist Watch',sku:'ACC-001',qty:1,price:199.99,emoji:'⌚',reason:'Size/fit issue',cond:'Like new'}],status:'resolved',resolution:'exchange',refundAmt:0,returnTracking:'DHL-RTN-2218',history:[{date:'Feb 18',event:'Exchange requested',user:'Customer'},{date:'Feb 19',event:'Approved',user:'Admin'},{date:'Feb 21',event:'Original received',user:'Warehouse'},{date:'Feb 22',event:'Replacement shipped',user:'Fulfilment'},{date:'Feb 24',event:'Exchange completed ✓',user:'System'}]},
+];
+
+const MOVEMENTS = [
+  {dt:'Mar 16, 09:14',prod:'Pro Mechanical Keyboard',sku:'ELEC-001',type:'sale',qty:-1,before:43,after:42,ref:'#ORD-8821',loc:'Warehouse A',user:'System'},
+  {dt:'Mar 15, 14:30',prod:'Wireless Headphones',sku:'ELEC-002',type:'return',qty:+1,before:17,after:18,ref:'RMA-2601',loc:'Warehouse A',user:'Warehouse'},
+  {dt:'Mar 14, 11:00',prod:'4K Webcam Pro',sku:'ELEC-003',type:'adjustment',qty:-2,before:9,after:7,ref:'ADJ-0041',loc:'Warehouse B',user:'Ahmed Karim'},
+  {dt:'Mar 13, 09:45',prod:'Premium Hoodie',sku:'APPRL-001',type:'purchase',qty:+25,before:38,after:63,ref:'PO-2026-031',loc:'Warehouse A',user:'System'},
+  {dt:'Mar 12, 16:20',prod:'Pro Mechanical Keyboard',sku:'ELEC-001',type:'transfer',qty:-5,before:48,after:43,ref:'TRF-0018',loc:'WH A → WH B',user:'Warehouse'},
+  {dt:'Mar 11, 10:00',prod:'USB-C Hub',sku:'ELEC-004',type:'sale',qty:-1,before:4,after:3,ref:'#ORD-8821',loc:'Warehouse A',user:'System'},
+  {dt:'Mar 10, 08:30',prod:'LED Desk Lamp',sku:'HOME-002',type:'adjustment',qty:-8,before:8,after:0,ref:'ADJ-0040',loc:'Warehouse B',user:'Stock Audit'},
+  {dt:'Mar 09, 14:00',prod:'Minimalist Watch',sku:'ACC-001',type:'sale',qty:-2,before:14,after:12,ref:'#ORD-8762',loc:'Warehouse B',user:'System'},
+];
+
+const DRIVERS = [
+  {id:'DRV-01',name:'Mohammed Al-Rashid',phone:'+968 9123 4567',vehicle:'Van NX-001',capacity:2000,loaded:900,status:'on_route',orders:3,zone:'Muscat Central',delivToday:12,rating:4.8},
+  {id:'DRV-02',name:'Ahmad Hassan',phone:'+968 9234 5678',vehicle:'Truck NX-002',capacity:5000,loaded:3000,status:'on_route',orders:5,zone:'Seeb, Bausher',delivToday:8,rating:4.9},
+  {id:'DRV-03',name:'Ravi Kumar',phone:'+968 9345 6789',vehicle:'Pickup NX-003',capacity:1000,loaded:200,status:'active',orders:1,zone:'Qurum, Khuwair',delivToday:4,rating:4.7},
+  {id:'DRV-04',name:'Omar Salim',phone:'+968 9456 7890',vehicle:'Van NX-004',capacity:2000,loaded:0,status:'off_duty',orders:0,zone:'Muttrah, Old Muscat',delivToday:6,rating:4.6},
+  {id:'DRV-05',name:'Sanjay Patel',phone:'+968 9567 8901',vehicle:'Motorcycle NX-005',capacity:200,loaded:150,status:'on_route',orders:4,zone:'City Centre',delivToday:18,rating:4.9},
+  {id:'DRV-06',name:'Ali Al-Balushi',phone:'+968 9678 9012',vehicle:'Truck NX-006',capacity:10000,loaded:4500,status:'active',orders:2,zone:'Sohar, Barka',delivToday:3,rating:4.7},
+];
+
+const VEHICLES = [
+  {id:'NX-001',plate:'AB 1234 CD',type:'Van',cap:2000,loaded:900,driver:'Mohammed Al-Rashid',status:'in_service',trips:3,service:'Apr 2026'},
+  {id:'NX-002',plate:'EF 5678 GH',type:'Light Truck',cap:5000,loaded:3000,driver:'Ahmad Hassan',status:'in_service',trips:5,service:'May 2026'},
+  {id:'NX-003',plate:'IJ 9012 KL',type:'Pickup',cap:1000,loaded:200,driver:'Ravi Kumar',status:'in_service',trips:1,service:'Jun 2026'},
+  {id:'NX-004',plate:'MN 3456 OP',type:'Van',cap:2000,loaded:0,driver:'Unassigned',status:'idle',trips:0,service:'Mar 2026 ⚠️'},
+  {id:'NX-005',plate:'QR 7890 ST',type:'Motorcycle',cap:200,loaded:150,driver:'Sanjay Patel',status:'in_service',trips:4,service:'Jul 2026'},
+  {id:'NX-006',plate:'UV 1234 WX',type:'Heavy Truck',cap:10000,loaded:4500,driver:'Ali Al-Balushi',status:'in_service',trips:2,service:'Aug 2026'},
+];
+
+const PARTIAL_ORDERS = [
+  {id:'#ORD-8781',customer:'Priya Singh',items:[{name:'Premium Hoodie (Size M)',emoji:'👕',sku:'APPRL-001',qty:2,shipped:0,status:'pending'},{name:'Running Sneakers (Size 8)',emoji:'👟',sku:'APPRL-002',qty:1,shipped:1,status:'shipped'}]},
+  {id:'#ORD-8750',customer:'Tariq Al-Mansouri',items:[{name:'4K Webcam Pro',emoji:'📷',sku:'ELEC-003',qty:1,shipped:1,status:'delivered'},{name:'LED Desk Lamp',emoji:'💡',sku:'HOME-002',qty:2,shipped:0,status:'backordered'}]},
+];
+
+const EXCHANGES = [
+  {id:'EXC-001',origOrder:'#ORD-8762',customer:'James Nguyen',returnItem:'Minimalist Watch (Black)',newItem:'Minimalist Watch (Silver)',status:'completed',date:'Feb 24, 2026',diff:'$0'},
+  {id:'EXC-002',origOrder:'#ORD-8781',customer:'Priya Singh',returnItem:'Premium Hoodie (M)',newItem:'Premium Hoodie (L)',status:'approved',date:'Mar 08, 2026',diff:'$0'},
+  {id:'EXC-003',origOrder:'#ORD-8794',customer:"Marcus O'Brien",returnItem:'LED Desk Lamp (Defective)',newItem:'LED Desk Lamp (Replacement)',status:'shipped',date:'Mar 05, 2026',diff:'$0'},
+];
+
+const CYCLE_COUNTS = [
+  {id:'CC-2026-008',name:'Q1 2026 Electronics Count',method:'ABC Analysis',scope:'Electronics — WH A',date:'Mar 10, 2026',status:'completed',assigned:'Team A',items:5,counted:5,variances:1,accuracy:'94.2%'},
+  {id:'CC-2026-007',name:'Weekly Spot Check',method:'Random Sample',scope:'All SKUs — WH B',date:'Mar 14, 2026',status:'in_progress',assigned:'Team B',items:7,counted:4,variances:0,accuracy:'—'},
+  {id:'CC-2026-006',name:'Apparel Full Count',method:'Location-based',scope:'Apparel — All Locations',date:'Feb 28, 2026',status:'completed',assigned:'Team A',items:3,counted:3,variances:0,accuracy:'100%'},
+  {id:'CC-2026-009',name:'Q1 Full Physical Count',method:'Full Physical',scope:'All SKUs — All Locations',date:'Mar 20, 2026',status:'scheduled',assigned:'External Auditor',items:12,counted:0,variances:0,accuracy:'—'},
+];
+
+const BUNDLES = [
+  {id:'BNDL-001',name:'Home Office Starter Kit',items:[{name:'Pro Mechanical Keyboard',emoji:'⌨️',price:149.99,qty:1},{name:'4K Webcam Pro',emoji:'📷',price:119.99,qty:1},{name:'LED Desk Lamp',emoji:'💡',price:59.99,qty:1}],bundlePrice:299.00,status:'active'},
+  {id:'BNDL-002',name:'Gaming Setup Bundle',items:[{name:'Pro Mechanical Keyboard',emoji:'⌨️',price:149.99,qty:1},{name:'Wireless Headphones',emoji:'🎧',price:229.99,qty:1}],bundlePrice:349.00,status:'active'},
+];
+
+let bundleItems = [];
+
+// ════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════
+let fOrd=[...ORDERS],fInv=[...INVENTORY],fProd=[...PRODUCTS];
+let selSet={ord:new Set(),inv:new Set()};
+let pgs={ord:1,inv:1,prod:1,mov:1};
+let rpp={ord:10,inv:10,prod:10,mov:10};
+let ordFilters={s:'',status:'',pay:''};
+let curOrdIdx=0,curProdIdx=0;
+
+// ════════════════════════════════════════════════
+// LOGIN / NAV
+// ════════════════════════════════════════════════
+function login(){
+  if(document.getElementById('EM').value==='admin@nexus.com'&&document.getElementById('PW').value==='password123'){
+    document.getElementById('LP').style.display='none';
+    initApp();
+  } else {document.getElementById('LE').style.display='block';}
+}
+function logout(){document.getElementById('LP').style.display='flex';}
+
+const pageTitles={
+  dashboard:'Dashboard','all-orders':'All Orders',returns:'Returns / RMA',
+  'partial-fulfil':'Partial Fulfillment',exchanges:'Exchanges',
+  soh:'Stock on Hand (SOH)','new-product':'New Product',
+  'bundle-product':'Bundle Products','product-details':'Product Details',
+  'cycle-count':'Cycle Count',movement:'Inventory Movement',
+  dispatch:'Dispatch & Route Builder',drivers:'Driver Management',utl:'Last-Mile Tracking & POD',
+  analytics:'Analytics',reports:'Reports',settings:'Settings'
+};
+
+function go(name){
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sb-nav li button, .sub-nav li button').forEach(b=>b.classList.remove('active'));
+  const pg=document.getElementById('pg-'+name);
+  if(pg) pg.classList.add('active');
+  const nb=document.getElementById('n-'+name)||document.getElementById('n-so-'+name.split('-').pop())||document.getElementById('n-so-'+name);
+  if(nb) nb.classList.add('active');
+  document.getElementById('PH').textContent=pageTitles[name]||name;
+  closeSB();
+  if(name==='analytics') setTimeout(initAnalytics,100);
+  if(name==='dispatch') renderDispatch();
+  if(name==='drivers') renderDrivers();
+  if(name==='utl') renderUTL();
+  if(name==='returns') renderReturns();
+  if(name==='exchanges') renderExchanges();
+  if(name==='partial-fulfil') renderPartial();
+  if(name==='cycle-count') renderCycleCounts();
+  if(name==='movement') renderMovements();
+  if(name==='bundle-product') renderBundlePage();
+  if(name==='product-details') renderProdDets();
+}
+
+function toggleSB(){document.getElementById('SB').classList.toggle('open');document.getElementById('SBO').classList.toggle('open');}
+function closeSB(){document.getElementById('SB').classList.remove('open');document.getElementById('SBO').classList.remove('open');}
+function toggleSub(id,arrowId){
+  const s=document.getElementById(id);const a=document.getElementById(arrowId);
+  s.classList.toggle('open');a.classList.toggle('open');
+}
+
+// ════════════════════════════════════════════════
+// MODAL
+// ════════════════════════════════════════════════
+function openM(id){document.getElementById(id).classList.add('on');}
+function closeM(id){document.getElementById(id).classList.remove('on');}
+document.addEventListener('click',e=>{if(e.target.classList.contains('mo'))e.target.classList.remove('on');});
+
+// ════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════
+let _tt;
+function toast(msg){
+  clearTimeout(_tt);const t=document.getElementById('TOAST');
+  t.textContent=msg;t.classList.add('on');
+  _tt=setTimeout(()=>t.classList.remove('on'),3200);
+}
+
+// ════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════
+function fM(s){return{delivered:'bs',shipped:'bi',processing:'bw',cancelled:'bg',failed:'be',requested:'bw',approved:'bi',in_transit:'bcy',received:'bo',resolved:'bs'}[s]||'bg';}
+function pM(s){return{paid:'bs',pending:'bw',failed:'be'}[s]||'bg';}
+
+// ════════════════════════════════════════════════
+// ORDERS
+// ════════════════════════════════════════════════
+function renderOrders(){
+  const {rows,total,tp}=page(fOrd,'ord');
+  document.getElementById('ordB').innerHTML=rows.map(o=>{
+    const gi=fOrd.indexOf(o);
+    const ck=selSet.ord.has(gi);
+    return `<tr class="${ck?'sel':''}">
+      <td><input type="checkbox" ${ck?'checked':''} onchange="togRow('ord',${gi},this.checked)"/></td>
+      <td style="font-weight:700;color:var(--primary);cursor:pointer" onclick="viewOrder(${gi})">${o.id}</td>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="av-sm">${o.customer[0]}</div><div><div>${o.customer}</div><div style="font-size:11px;color:var(--muted)">${o.email}</div></div></div></td>
+      <td style="color:var(--muted)">${o.date}</td>
+      <td>${o.items}</td>
+      <td style="font-weight:700">$${o.total.toFixed(2)}</td>
+      <td><span class="bge ${pM(o.payment)}">${o.payment}</span></td>
+      <td><span class="bge ${fM(o.fulfillment)}">${o.fulfillment}</span></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="bic" title="View" onclick="viewOrder(${gi})">👁</button>
+        <button class="bic" title="Edit" onclick="popOrdEdit(${gi});openM('orderEditM')">✏️</button>
+        <button class="bic" title="Return" onclick="openM('createReturnM')">↩️</button>
+        <button class="bic d" title="Cancel" onclick="curOrdIdx=${gi};cancelOrd()">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  renderPgn('ord',total,pgs.ord,tp);
+}
+
+function viewOrder(idx){
+  curOrdIdx=idx;const o=fOrd[idx];
+  document.getElementById('ovTitle').innerHTML=`📦 ${o.id} &nbsp;<span class="bge ${fM(o.fulfillment)}">${o.fulfillment}</span>`;
+  const tlSteps=buildTL(o.fulfillment);
+  const items=o.products.map(p=>`
+    <div class="li2"><div class="lii">${p.emoji}</div>
+    <div style="flex:1"><div class="lin">${p.name}</div><div class="lim">SKU: ${p.sku} · Qty: ${p.qty}</div></div>
+    <div style="font-weight:700">$${(p.price*p.qty).toFixed(2)}</div></div>`).join('');
+  document.getElementById('ovBody').innerHTML=`
+    <div class="ig">
+      <div class="is2"><div class="is2-t">Customer</div>
+        <div class="ir"><span class="il">Name</span><span class="iv">${o.customer}</span></div>
+        <div class="ir"><span class="il">Email</span><span class="iv">${o.email}</span></div>
+        <div class="ir"><span class="il">Phone</span><span class="iv">${o.phone}</span></div>
+        <div class="ir"><span class="il">Address</span><span class="iv" style="max-width:180px;text-align:right">${o.address}</span></div>
+      </div>
+      <div class="is2"><div class="is2-t">Shipment & Payment</div>
+        <div class="ir"><span class="il">Date</span><span class="iv">${o.date}</span></div>
+        <div class="ir"><span class="il">Payment</span><span class="iv"><span class="bge ${pM(o.payment)}">${o.payment}</span></span></div>
+        <div class="ir"><span class="il">Carrier</span><span class="iv">${o.carrier||'—'}</span></div>
+        <div class="ir"><span class="il">Tracking #</span><span class="iv" style="color:var(--primary)">${o.tracking||'Not assigned'}</span></div>
+      </div>
+    </div>
+    <div style="margin-bottom:18px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px">Order Timeline</div>
+      <div class="tl">${tlSteps}</div>
+    </div>
+    <div class="is2 mb5">
+      <div class="is2-t">Line Items (${o.items})</div>${items}
+      <div class="div"></div>
+      <div class="ir"><span class="il">Subtotal</span><span class="iv">$${o.total.toFixed(2)}</span></div>
+      <div class="ir"><span class="il">Shipping</span><span class="iv tx-ok">FREE</span></div>
+      <div class="ir"><span class="il">Tax (8%)</span><span class="iv">$${(o.total*.08).toFixed(2)}</span></div>
+      <div class="ir" style="font-weight:700;font-size:15px"><span class="il">Total</span><span class="iv">$${(o.total*1.08).toFixed(2)}</span></div>
+    </div>
+    ${o.notes?`<div class="is2"><div class="is2-t">Internal Notes</div><div style="font-size:13px;line-height:1.6">${o.notes}</div></div>`:''}`;
+  openM('orderViewM');
+}
+
+function buildTL(status){
+  const s=[
+    {l:'Order Placed',t:'Order confirmed',st:'done'},
+    {l:'Payment Captured',t:'Stripe authorised',st:['processing','shipped','delivered'].includes(status)?'done':status==='cancelled'?'fail':''},
+    {l:'Fulfillment',t:'Picked & packed',st:['shipped','delivered'].includes(status)?'done':status==='cancelled'?'fail':'active'},
+    {l:'Shipped',t:'Dispatched to carrier',st:status==='shipped'||status==='delivered'?'done':status==='cancelled'?'fail':''},
+    {l:'Delivered',t:'Confirmed at recipient',st:status==='delivered'?'done':''},
+  ];
+  return s.map(x=>`<div class="tli ${x.st}"><div class="tld">${x.st==='done'?'✓':x.st==='fail'?'✕':''}</div><div class="tl-lb">${x.l}</div><div class="tl-tm">${x.t}</div></div>`).join('');
+}
+
+function openOrderEdit(){closeM('orderViewM');popOrdEdit(curOrdIdx);openM('orderEditM');}
+function popOrdEdit(idx){
+  curOrdIdx=idx;const o=fOrd[idx];
+  document.getElementById('oeId').textContent=o.id;
+  document.getElementById('oeName').value=o.customer;
+  document.getElementById('oeEmail').value=o.email;
+  document.getElementById('oeAddr').value=o.address;
+  document.getElementById('oePay').value=o.payment;
+  document.getElementById('oeFul').value=o.fulfillment;
+  document.getElementById('oeTrk').value=o.tracking;
+  document.getElementById('oeCarr').value=o.carrier||'DHL Express';
+  document.getElementById('oeNotes').value=o.notes;
+}
+function saveOrdEdit(){
+  const o=fOrd[curOrdIdx];
+  o.customer=document.getElementById('oeName').value;
+  o.email=document.getElementById('oeEmail').value;
+  o.address=document.getElementById('oeAddr').value;
+  o.payment=document.getElementById('oePay').value;
+  o.fulfillment=document.getElementById('oeFul').value;
+  o.tracking=document.getElementById('oeTrk').value;
+  o.carrier=document.getElementById('oeCarr').value;
+  o.notes=document.getElementById('oeNotes').value;
+  closeM('orderEditM');renderOrders();toast('✓ Order '+o.id+' updated');
+}
+function cancelOrd(){const o=fOrd[curOrdIdx];o.fulfillment='cancelled';o.payment='failed';renderOrders();toast('⚠️ Order '+o.id+' cancelled');}
+function cancelOrdFromEdit(){cancelOrd();closeM('orderEditM');}
+function printOrderDet(){
+  const o=fOrd[curOrdIdx];
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>Order ${o.id}</title><style>body{font-family:sans-serif;padding:32px;font-size:14px}h2{margin-bottom:4px}table{width:100%;border-collapse:collapse;margin-top:16px}td,th{padding:8px 12px;border:1px solid #ddd;text-align:left}th{background:#f5f5f5}</style></head><body>
+  <h2>NEXUS Commerce — Order ${o.id}</h2><p style="color:#666">Date: ${o.date} | Generated: ${new Date().toLocaleDateString()}</p><hr/>
+  <p><b>Customer:</b> ${o.customer} | <b>Email:</b> ${o.email} | <b>Phone:</b> ${o.phone}</p>
+  <p><b>Address:</b> ${o.address}</p>
+  <p><b>Status:</b> ${o.fulfillment} | <b>Payment:</b> ${o.payment} | <b>Tracking:</b> ${o.tracking||'N/A'} (${o.carrier||'—'})</p>
+  <table><tr><th>Product</th><th>SKU</th><th>Qty</th><th>Unit Price</th><th>Line Total</th></tr>
+  ${o.products.map(p=>`<tr><td>${p.name}</td><td>${p.sku}</td><td>${p.qty}</td><td>$${p.price.toFixed(2)}</td><td>$${(p.price*p.qty).toFixed(2)}</td></tr>`).join('')}
+  <tr><td colspan="4" style="text-align:right"><b>Total (incl. 8% tax)</b></td><td><b>$${(o.total*1.08).toFixed(2)}</b></td></tr></table>
+  ${o.notes?`<p style="margin-top:16px;padding:12px;background:#fffbeb;border:1px solid #f59e0b;border-radius:6px"><b>Notes:</b> ${o.notes}</p>`:''}
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+
+// FILTERS
+function filterOrd(q){ordFilters.s=q.toLowerCase();applyOrdF();}
+function filterOrdS(s){ordFilters.status=s.toLowerCase();applyOrdF();}
+function filterOrdP(p){ordFilters.pay=p.toLowerCase();applyOrdF();}
+function applyOrdF(){
+  fOrd=ORDERS.filter(o=>
+    (!ordFilters.s||o.id.toLowerCase().includes(ordFilters.s)||o.customer.toLowerCase().includes(ordFilters.s))&&
+    (!ordFilters.status||o.fulfillment===ordFilters.status)&&
+    (!ordFilters.pay||o.payment===ordFilters.pay));
+  pgs.ord=1;renderOrders();
+}
+
+// RETURNS
+function renderReturns(){
+  document.getElementById('returnsCards').innerHTML=RETURNS.map(r=>{
+    const staClr={requested:'bw',approved:'bi',in_transit:'bcy',received:'bo',resolved:'bs'}[r.status]||'bg';
+    const resLabel={refund:'💰 Refund',store_credit:'🎫 Store Credit',exchange:'🔄 Exchange',repair:'🔧 Repair'}[r.resolution];
+    const hstHtml=r.history.map(h=>`<div style="display:flex;gap:8px;padding:5px 0;font-size:12px;border-bottom:1px solid var(--bor);align-items:flex-start"><div style="color:var(--muted);min-width:55px">${h.date}</div><div style="flex:1">${h.event}</div><div style="color:var(--muted)">${h.user}</div></div>`).join('');
+    return `<div class="rma-card">
+      <div class="rma-head">
+        <div><div class="rma-id">${r.id} <span class="bge ${staClr}" style="margin-left:6px">${r.status.replace('_',' ')}</span></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">Order: ${r.orderId} · ${r.customer} · ${r.date}</div></div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="tg">${resLabel}</span>
+          ${r.refundAmt>0?`<span style="font-weight:700;color:var(--err)">−$${r.refundAmt.toFixed(2)}</span>`:''}
+          <button class="btn btn-o btn-xs" onclick="toast('Opening RMA ${r.id} details')">View</button>
+        </div>
+      </div>
+      <div class="rma-items">${r.items.map(it=>`<div class="rma-item"><div style="font-size:1.4rem;margin-bottom:4px">${it.emoji}</div><div style="font-weight:600">${it.name}</div><div class="rma-reason">${it.reason}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">Condition: ${it.cond}</div></div>`).join('')}</div>
+      <div style="margin-top:12px;border-top:1px solid var(--bor);padding-top:12px">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:8px">Return History</div>
+        ${hstHtml}
+      </div>
+      ${r.returnTracking?`<div style="margin-top:10px;font-size:12px;color:var(--muted)">Return Tracking: <span style="color:var(--primary);font-weight:600">${r.returnTracking}</span></div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function createReturn(){closeM('createReturnM');RETURNS.unshift({id:'RMA-'+Date.now().toString().slice(-4),orderId:'#ORD-8821',customer:'Aminur Rahman',date:'Mar 16, 2026',items:[{name:'Pro Mechanical Keyboard',sku:'ELEC-001',qty:1,price:149.99,emoji:'⌨️',reason:document.getElementById('rmaReason').value,cond:document.getElementById('rmaCond').value}],status:'approved',resolution:document.getElementById('rmaRes').value,refundAmt:149.99,returnTracking:'',history:[{date:'Mar 16',event:'RMA created by Admin',user:'Admin'},{date:'Mar 16',event:'RMA approved — awaiting return',user:'System'}]});renderReturns();toast('✓ RMA created and approved');}
+
+// EXCHANGES
+function renderExchanges(){
+  document.getElementById('exchB').innerHTML=EXCHANGES.map(e=>{
+    const sc={completed:'bs',approved:'bi',shipped:'bcy',pending:'bw'}[e.status]||'bg';
+    return `<tr>
+      <td style="font-weight:700;color:var(--primary)">${e.id}</td>
+      <td>${e.origOrder}</td><td>${e.customer}</td>
+      <td style="color:var(--err)">${e.returnItem}</td>
+      <td style="color:var(--ok)">${e.newItem}</td>
+      <td><span class="bge ${sc}">${e.status}</span></td>
+      <td style="color:var(--muted)">${e.date}</td>
+      <td><button class="btn btn-o btn-xs" onclick="toast('Viewing exchange ${e.id}')">Details</button></td>
+    </tr>`;
+  }).join('');
+}
+function createExchange(){closeM('createExchangeM');toast('✓ Exchange created successfully');}
+
+// PARTIAL FULFILLMENT
+function renderPartial(){
+  document.getElementById('partialCards').innerHTML=PARTIAL_ORDERS.map(o=>`
+    <div class="cd mb5">
+      <div class="cd-hd"><div><div class="cd-t" style="color:var(--primary)">${o.id}</div><div style="font-size:12px;color:var(--muted)">${o.customer}</div></div>
+        <div style="display:flex;gap:8px"><button class="btn btn-warn btn-sm" onclick="toast('Dispatching remaining items for ${o.id}')">🚚 Dispatch Remaining</button><button class="btn btn-o btn-sm" onclick="toast('Customer notified')">📧 Notify Customer</button></div>
+      </div>
+      <div class="cd-b" style="padding:0">
+        <div class="tw"><table><thead><tr><th>Item</th><th>SKU</th><th>Qty Ordered</th><th>Qty Shipped</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>${o.items.map(it=>{
+          const sc={delivered:'bs',shipped:'bi',pending:'bw',backordered:'be'}[it.status]||'bg';
+          return `<tr><td><div class="pc"><div class="pi">${it.emoji}</div><div>${it.name}</div></div></td><td style="color:var(--muted)">${it.sku}</td><td>${it.qty}</td><td>${it.shipped}</td><td><span class="bge ${sc}">${it.status}</span></td><td><button class="btn btn-o btn-xs" onclick="toast('Fulfilling item ${it.sku}')">Fulfill</button></td></tr>`;
+        }).join('')}</tbody></table></div>
+      </div>
+    </div>`).join('');
+}
+
+// INVENTORY / SOH
+function renderInventory(){
+  const {rows,total,tp}=page(fInv,'inv');
+  document.getElementById('invB').innerHTML=rows.map(item=>{
+    const gi=fInv.indexOf(item);
+    const ck=selSet.inv.has(gi);
+    const pct=Math.min(100,(item.available/65)*100);
+    const col=item.available===0?'#ef4444':item.available<8?'#f59e0b':'#22c55e';
+    const badge=item.available===0?'be':item.available<8?'bw':'bs';
+    const stat=item.available===0?'Out of Stock':item.available<8?'Low Stock':'In Stock';
+    return `<tr class="${ck?'sel':''}">
+      <td><input type="checkbox" ${ck?'checked':''} onchange="togRow('inv',${gi},this.checked)"/></td>
+      <td><div class="pc"><div class="pi">${item.emoji}</div><div style="font-weight:600">${item.name}</div></div></td>
+      <td style="color:var(--muted)">${item.sku}</td><td>${item.location}</td>
+      <td style="font-weight:700">${item.onHand}</td><td style="color:var(--warn)">${item.reserved}</td>
+      <td style="font-weight:700;color:${col}">${item.available}</td>
+      <td><div class="stb"><div class="stf" style="width:${pct}%;background:${col}"></div></div></td>
+      <td><span class="bge ${badge}">${stat}</span></td>
+      <td><div style="display:flex;gap:4px">
+        <button class="bic" title="Adjust" onclick="openM('adjStockM')">📋</button>
+        <button class="bic" title="Movement" onclick="go('movement')">📈</button>
+        <button class="bic" title="Details" onclick="go('product-details')">🔍</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+  renderPgn('inv',total,pgs.inv,tp);
+}
+function filterInv(q){fInv=q?INVENTORY.filter(i=>i.name.toLowerCase().includes(q.toLowerCase())||i.sku.toLowerCase().includes(q.toLowerCase())):[...INVENTORY];pgs.inv=1;renderInventory();}
+
+// MOVEMENTS
+function renderMovements(){
+  const tyMap={sale:{cls:'mv-out',icon:'🛒'},purchase:{cls:'mv-in',icon:'📥'},return:{cls:'mv-ret',icon:'↩️'},adjustment:{cls:'mv-adj',icon:'✏️'},transfer:{cls:'mv-tf',icon:'🔀'}};
+  document.getElementById('movB').innerHTML=MOVEMENTS.map(m=>{
+    const t=tyMap[m.type]||{cls:'mv-adj',icon:'?'};
+    const qStr=m.qty>0?`<span style="color:var(--ok);font-weight:700">+${m.qty}</span>`:`<span style="color:var(--err);font-weight:700">${m.qty}</span>`;
+    return `<tr>
+      <td style="color:var(--muted);font-size:12px">${m.dt}</td>
+      <td><div class="pc"><div class="pi" style="font-size:14px">${m.prod.slice(0,16)}…</div></div></td>
+      <td style="color:var(--muted)">${m.sku}</td>
+      <td><div style="display:flex;align-items:center;gap:6px"><div class="mv-type ${t.cls}">${t.icon}</div><span class="tg">${m.type}</span></div></td>
+      <td>${qStr}</td>
+      <td style="color:var(--muted)">${m.before}</td>
+      <td style="font-weight:700">${m.after}</td>
+      <td style="color:var(--primary)">${m.ref}</td>
+      <td>${m.loc}</td>
+      <td style="color:var(--muted)">${m.user}</td>
+    </tr>`;
+  }).join('');
+}
+
+// CYCLE COUNTS
+function renderCycleCounts(){
+  document.getElementById('cycleCounts').innerHTML=CYCLE_COUNTS.map(cc=>{
+    const sc={completed:'bs',in_progress:'bi',scheduled:'bw',pending:'bg'}[cc.status]||'bg';
+    const prog=cc.items>0?Math.round((cc.counted/cc.items)*100):0;
+    return `<div class="cc-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px">
+        <div><div style="font-weight:700;font-size:14px">${cc.name} <span class="bge ${sc} cc-status">${cc.status.replace('_',' ')}</span></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">${cc.method} · ${cc.scope} · Assigned: ${cc.assigned}</div></div>
+        <div style="display:flex;gap:8px">
+          ${cc.status==='in_progress'?'<button class="btn btn-p btn-sm" onclick="toast(\'Continuing count '+cc.id+'\')">Continue Count</button>':''}
+          ${cc.status==='scheduled'?'<button class="btn btn-o btn-sm" onclick="toast(\'Count started\')">Start Count</button>':''}
+          <button class="btn btn-o btn-sm" onclick="toast(\'Exporting '+cc.id+'\')">📊 Export</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:24px;font-size:13px;flex-wrap:wrap">
+        <div><span style="color:var(--muted)">Scheduled: </span><strong>${cc.date}</strong></div>
+        <div><span style="color:var(--muted)">Items: </span><strong>${cc.counted}/${cc.items} counted</strong></div>
+        <div><span style="color:var(--muted)">Variances: </span><strong class="${cc.variances>0?'tx-warn':'tx-ok'}">${cc.variances}</strong></div>
+        <div><span style="color:var(--muted)">Accuracy: </span><strong>${cc.accuracy}</strong></div>
+      </div>
+      <div style="margin-top:12px"><div class="pw"><div class="pf" style="width:${prog}%"></div></div><div style="font-size:11px;color:var(--muted);margin-top:4px">${prog}% complete</div></div>
+    </div>`;
+  }).join('');
+}
+
+// DISPATCH
+function renderDispatch(){
+  const unass=ORDERS.filter(o=>o.fulfillment==='processing'&&!o.tracking);
+  document.getElementById('unassigned-count').textContent=unass.length;
+  document.getElementById('unassignedB').innerHTML=unass.map(o=>`<tr>
+    <td><input type="checkbox"/></td>
+    <td style="font-weight:700;color:var(--primary)">${o.id}</td>
+    <td>${o.customer}</td>
+    <td style="font-size:12px;color:var(--muted)">${o.address.slice(0,30)}…</td>
+    <td>2.5kg</td>
+    <td><span class="bge bw">Normal</span></td>
+    <td><button class="btn btn-p btn-xs" onclick="document.getElementById('assignOrdInfo').innerHTML='Order: ${o.id} — ${o.customer}';openM('assignDriverM')">Assign Driver</button></td>
+  </tr>`).join('');
+
+  const avail=DRIVERS.filter(d=>d.status!=='off_duty');
+  document.getElementById('driverPickB').innerHTML=avail.map(d=>{
+    const util=Math.round((d.loaded/d.capacity)*100);
+    const sc=d.status==='on_route'?'bi':'bs';
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:8px"><div class="av-sm">${d.name[0]}</div>${d.name}</div></td>
+      <td style="font-size:12px;color:var(--muted)">${d.vehicle}</td>
+      <td><div class="stb" style="width:60px;display:inline-block"><div class="stf" style="width:${util}%;background:${util>80?'#ef4444':util>50?'#f59e0b':'#22c55e'}"></div></div> ${util}%</td>
+      <td><span class="bge ${sc}">${d.status.replace('_',' ')}</span></td>
+      <td><span style="font-size:12px;color:var(--muted)">${d.orders} orders</span></td>
+    </tr>`;
+  }).join('');
+
+  const active=ORDERS.filter(o=>o.fulfillment==='shipped'&&o.tracking);
+  document.getElementById('activeDelB').innerHTML=active.map(o=>`<tr>
+    <td style="font-weight:700;color:var(--primary)">${o.id}</td>
+    <td>${DRIVERS[Math.floor(Math.random()*3)].name.split(' ')[0]}</td>
+    <td style="font-size:12px;color:var(--muted)">${o.customer}</td>
+    <td style="color:var(--muted)">Today 09:30</td>
+    <td style="color:var(--ok);font-weight:600">~2:30 PM</td>
+    <td><span class="bge bi">In Transit</span></td>
+    <td><button class="btn btn-o btn-xs" onclick="toast('POD captured')">📷 POD</button></td>
+    <td><button class="btn btn-o btn-xs" onclick="toast('Tracking ${o.tracking}')">Track</button></td>
+  </tr>`).join('');
+}
+
+// DRIVERS
+function renderDrivers(){
+  document.getElementById('driversGrid').innerHTML=DRIVERS.map(d=>{
+    const util=Math.round((d.loaded/d.capacity)*100);
+    const sc=d.status==='on_route'?'🟡 On Route':d.status==='active'?'🟢 Available':'⚫ Off Duty';
+    const bCol={on_route:'#f59e0b',active:'#22c55e',off_duty:'#94a3b8'}[d.status];
+    return `<div class="dr-card">
+      <div class="dr-av">${d.name[0]}</div>
+      <div class="dr-name">${d.name}</div>
+      <div class="dr-stat">${d.vehicle} · ${d.phone}</div>
+      <div style="margin-top:8px;font-size:12px;color:var(--muted)">${d.zone}</div>
+      <div style="margin:10px 0">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px"><span>Load</span><span>${util}%</span></div>
+        <div class="pw"><div class="pf" style="width:${util}%;background:${util>80?'#ef4444':util>50?'#f59e0b':'#22c55e'}"></div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <span style="font-size:11px;color:${bCol};font-weight:700">${sc}</span>
+        <span style="font-size:11px;color:var(--muted)">⭐ ${d.rating} · ${d.delivToday} today</span>
+      </div>
+      <div class="dr-orders">${d.orders} active orders</div>
+      <div style="display:flex;gap:6px;margin-top:10px">
+        <button class="btn btn-o btn-xs" style="flex:1" onclick="toast('Viewing ${d.name} profile')">Profile</button>
+        <button class="btn btn-p btn-xs" style="flex:1" onclick="toast('Assigning order to ${d.name}')">Assign</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// UTL
+function renderUTL(){
+  document.getElementById('vehicleCards').innerHTML=VEHICLES.map(v=>{
+    const util=Math.round((v.loaded/v.cap)*100);
+    const bCol=util>85?'#ef4444':util>60?'#f59e0b':'#22c55e';
+    const sc=v.status==='in_service'?'bs':'bg';
+    return `<div class="vc">
+      <div class="vc-head">
+        <div><div style="font-weight:700;font-size:15px">🚛 ${v.id} <span class="bge ${sc}">${v.status.replace('_',' ')}</span></div>
+        <div style="font-size:12px;color:var(--muted)">${v.type} · ${v.plate} · Driver: ${v.driver}</div></div>
+        <div style="text-align:right"><div style="font-size:22px;font-weight:800;color:${bCol}">${util}%</div><div style="font-size:11px;color:var(--muted)">Utilization</div></div>
+      </div>
+      <div style="display:flex;gap:24px;font-size:13px;flex-wrap:wrap;margin-bottom:8px">
+        <div><span style="color:var(--muted)">Capacity: </span><strong>${v.cap.toLocaleString()}kg</strong></div>
+        <div><span style="color:var(--muted)">Loaded: </span><strong>${v.loaded.toLocaleString()}kg</strong></div>
+        <div><span style="color:var(--muted)">Active Trips: </span><strong>${v.trips}</strong></div>
+        <div><span style="color:var(--muted)">Next Service: </span><strong>${v.service}</strong></div>
+      </div>
+      <div class="vc-bar-wrap"><div class="vc-bar" style="width:${util}%;background:${bCol}"></div></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn btn-o btn-xs" onclick="toast('Viewing ${v.id} history')">History</button>
+        <button class="btn btn-o btn-xs" onclick="toast('Editing ${v.id}')">Edit</button>
+        ${v.status==='idle'?'<button class="btn btn-p btn-xs" onclick="toast(\''+v.id+' activated\')">Activate</button>':''}
+        ${v.service.includes('⚠️')?'<button class="btn btn-warn btn-xs" onclick="toast(\'Scheduling service for '+v.id+'\')">⚠️ Schedule Service</button>':''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// PRODUCTS (details page)
+function renderProdDets(filt){
+  const src=filt||PRODUCTS;
+  document.getElementById('prodDetB').innerHTML=src.map((p,i)=>{
+    const sb=p.stock===0?'be':p.stock<10?'bw':'bs';
+    return `<tr>
+      <td><div class="pc"><div class="pi">${p.emoji}</div><div><div style="font-weight:600">${p.name}</div><div class="pm">${p.sku}</div></div></div></td>
+      <td style="color:var(--muted)">${p.sku}</td>
+      <td><span class="tg">${p.cat}</span></td>
+      <td style="font-weight:700">$${p.price.toFixed(2)}</td>
+      <td><span class="bge ${sb}">${p.stock===0?'Out':p.stock<10?'Low ('+p.stock+')':p.stock+' units'}</span></td>
+      <td><span class="bge ${p.status==='active'?'bs':'bg'}">${p.status}</span></td>
+      <td>${p.sales}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="bic" onclick="toast('Editing ${p.name}')">✏️</button>
+        <button class="bic" onclick="go('movement')">📈</button>
+        <button class="bic d" onclick="toast('Deleting product')">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+function filterProds(q){renderProdDets(q?PRODUCTS.filter(p=>p.name.toLowerCase().includes(q.toLowerCase())||p.sku.toLowerCase().includes(q.toLowerCase())):undefined);}
+
+// BUNDLE
+function addBundleItem(){
+  const sel=document.getElementById('biProd');
+  const opt=sel.options[sel.selectedIndex];
+  const qty=parseInt(document.getElementById('biQty').value)||1;
+  const parts=opt.text.split('—').map(s=>s.trim());
+  const emoji=parts[0].split(' ')[0];
+  const name=parts[0].slice(2).trim();
+  const price=parseFloat(parts[1]?.replace('$',''))||0;
+  bundleItems.push({emoji,name,price,qty});
+  closeM('addBundleItemM');updateBundleUI();
+}
+function updateBundleUI(){
+  const total=bundleItems.reduce((s,i)=>s+i.price*i.qty,0);
+  document.getElementById('bnTotal').textContent='$'+total.toFixed(2);
+  const bp=parseFloat(document.getElementById('bnPrice').value)||0;
+  if(bp>0&&total>0) document.getElementById('bnDisc').value=Math.round((1-bp/total)*100)+'%';
+  document.getElementById('bundleItemsList').innerHTML=bundleItems.length?bundleItems.map((it,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--sur2);border-radius:8px;margin-bottom:8px">
+      <div style="font-size:1.5rem">${it.emoji}</div>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${it.name}</div><div style="font-size:11px;color:var(--muted)">Qty: ${it.qty} · $${it.price.toFixed(2)} each</div></div>
+      <div style="font-weight:700">$${(it.price*it.qty).toFixed(2)}</div>
+      <button onclick="bundleItems.splice(${i},1);updateBundleUI()" style="background:none;border:none;cursor:pointer;color:var(--err);font-size:16px">×</button>
+    </div>`).join(''):'<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No items added yet.</div>';
+}
+function saveBundleProduct(){
+  if(!bundleItems.length){toast('⚠️ Add at least one product to the bundle');return;}
+  toast('✓ Bundle "'+document.getElementById('bnName').value+'" saved');bundleItems=[];updateBundleUI();
+}
+function renderBundlePage(){
+  updateBundleUI();
+  document.getElementById('existingBundles').innerHTML=BUNDLES.map(b=>{
+    const total=b.items.reduce((s,i)=>s+i.price*i.qty,0);
+    const disc=Math.round((1-b.bundlePrice/total)*100);
+    return `<div style="border:1px solid var(--bor);border-radius:10px;padding:14px;margin-bottom:12px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div><div style="font-weight:700">${b.name}</div><div style="font-size:11px;color:var(--muted)">${b.id}</div></div>
+        <span class="bge ${b.status==='active'?'bs':'bg'}">${b.status}</span>
+      </div>
+      <div>${b.items.map(i=>`<span style="font-size:12px;background:var(--sur2);padding:3px 8px;border-radius:5px;margin-right:5px;margin-bottom:4px;display:inline-block">${i.emoji} ${i.name}</span>`).join('')}</div>
+      <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center">
+        <div><span style="text-decoration:line-through;color:var(--muted);font-size:12px">$${total.toFixed(2)}</span> <strong>$${b.bundlePrice.toFixed(2)}</strong> <span style="color:var(--ok);font-size:11px;font-weight:700">−${disc}%</span></div>
+        <div style="display:flex;gap:6px"><button class="btn btn-o btn-xs">Edit</button><button class="btn btn-d btn-xs">Delete</button></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveNewProduct(){
+  const name=document.getElementById('npName').value;
+  if(!name){toast('⚠️ Product name is required');return;}
+  PRODUCTS.push({id:PRODUCTS.length+1,name,emoji:'📦',cat:document.getElementById('npCat').value,price:parseFloat(document.getElementById('npPrice').value)||0,stock:parseInt(document.getElementById('npStock').value)||0,status:document.getElementById('npStat').value,sales:0,sku:document.getElementById('npSku').value,desc:document.getElementById('npDesc').value});
+  toast('✓ Product "'+name+'" saved successfully');go('product-details');
+}
+
+// PAGINATION
+function page(data,key){
+  const pg=pgs[key];const r=rpp[key];
+  return{rows:data.slice((pg-1)*r,pg*r),total:data.length,tp:Math.ceil(data.length/r)};
+}
+function renderPgn(key,total,pg,tp){
+  const el=document.getElementById(key+'Pgn');if(!el)return;
+  const r=rpp[key];
+  let btns='';
+  for(let i=1;i<=tp;i++){
+    if(i===1||i===tp||Math.abs(i-pg)<=1) btns+=`<button class="pb ${i===pg?'on':''}" onclick="setPage('${key}',${i})">${i}</button>`;
+    else if(Math.abs(i-pg)===2) btns+=`<span style="padding:0 3px;color:var(--muted)">…</span>`;
+  }
+  el.innerHTML=`<div class="pgn-i">Showing ${Math.min((pg-1)*r+1,total)}–${Math.min(pg*r,total)} of ${total}</div>
+    <div style="display:flex;align-items:center;gap:8px"><div class="pgn-c">
+      <button class="pb" onclick="setPage('${key}',${pg-1})" ${pg===1?'disabled':''}>‹</button>
+      ${btns}
+      <button class="pb" onclick="setPage('${key}',${pg+1})" ${pg===tp?'disabled':''}>›</button>
+    </div>
+    <select class="rsp" onchange="setRPP('${key}',+this.value)">${[5,10,20,50].map(n=>`<option ${r===n?'selected':''} value="${n}">${n}/page</option>`).join('')}</select></div>`;
+}
+function setPage(key,pg){
+  const data={ord:fOrd,inv:fInv,prod:PRODUCTS}[key];
+  if(!data)return;const tp=Math.ceil(data.length/rpp[key]);
+  if(pg<1||pg>tp)return;pgs[key]=pg;
+  const renders={ord:renderOrders,inv:renderInventory,prod:renderProdDets};
+  if(renders[key])renders[key]();
+}
+function setRPP(key,n){rpp[key]=n;pgs[key]=1;setPage(key,1);}
+
+// BULK SELECT
+function selAll(key,ck){
+  const data={ord:fOrd,inv:fInv}[key];if(!data)return;
+  const {rows}=page(data,key);
+  selSet[key]=ck?new Set(rows.map((_,i)=>data.indexOf(_))):new Set();
+  const renders={ord:renderOrders,inv:renderInventory};if(renders[key])renders[key]();
+  updBB(key);
+}
+function togRow(key,idx,ck){
+  if(ck)selSet[key].add(idx);else selSet[key].delete(idx);
+  updBB(key);
+  document.getElementById(key==='ord'?'ordB':'invB')?.querySelectorAll('tr').forEach((tr,i)=>{});
+}
+function updBB(key){
+  const n=selSet[key].size;
+  const bar=document.getElementById(key==='ord'?'ordBB':'invBB');
+  const cnt=document.getElementById(key==='ord'?'ordBBC':'invBBC');
+  if(bar)bar.classList.toggle('on',n>0);
+  if(cnt)cnt.textContent=n+' selected';
+}
+function clrSel(key){selSet[key]=new Set();updBB(key);const r={ord:renderOrders,inv:renderInventory};if(r[key])r[key]();}
+function bulkExpOrd(){const n=selSet.ord.size;expCSV([['Order ID','Customer','Total','Status'],...[...selSet.ord].map(i=>{const o=fOrd[i];return[o.id,o.customer,'$'+o.total.toFixed(2),o.fulfillment];})],'orders-bulk');toast('📊 Exported '+n+' orders');}
+function bulkUpdOrd(){toast('🔄 Status updated for '+selSet.ord.size+' orders');clrSel('ord');}
+function bulkDelOrd(){toast('🗑️ '+selSet.ord.size+' orders deleted');clrSel('ord');}
+function bulkExpInv(){const n=selSet.inv.size;expCSV([['Product','SKU','On Hand','Available'],...[...selSet.inv].map(i=>{const it=fInv[i];return[it.name,it.sku,it.onHand,it.available];})],'inventory-bulk');toast('📊 Exported '+n+' items');}
+
+// SORT
+function srt(key,col){
+  const data={ord:fOrd,inv:fInv,prod:PRODUCTS}[key];if(!data)return;
+  const k=key+'_'+col;
+  window._srtSt=window._srtSt||{};
+  window._srtSt[k]=window._srtSt[k]==='asc'?'desc':'asc';
+  const d=window._srtSt[k]==='asc'?1:-1;
+  data.sort((a,b)=>{const av=a[col],bv=b[col];return typeof av==='number'?(av-bv)*d:String(av).localeCompare(String(bv))*d;});
+  const r={ord:renderOrders,inv:renderInventory,prod:renderProdDets};if(r[key])r[key]();
+}
+
+// EXPORT
+function expCSV(rows,fname){
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const b=new Blob([csv],{type:'text/csv'});const u=URL.createObjectURL(b);
+  const a=document.createElement('a');a.href=u;a.download=fname+'.csv';a.click();
+  URL.revokeObjectURL(u);toast('📊 '+fname+'.csv exported');
+}
+function expOrdCSV(){expCSV([['Order ID','Customer','Email','Date','Total','Payment','Fulfillment','Tracking'],...fOrd.map(o=>[o.id,o.customer,o.email,o.date,'$'+o.total.toFixed(2),o.payment,o.fulfillment,o.tracking||''])],'orders');}
+function expInvCSV(){expCSV([['Product','SKU','Location','On Hand','Reserved','Available'],...fInv.map(i=>[i.name,i.sku,i.location,i.onHand,i.reserved,i.available])],'inventory');}
+function expReturnsCSV(){expCSV([['RMA ID','Order','Customer','Date','Status','Resolution','Refund Amount'],...RETURNS.map(r=>[r.id,r.orderId,r.customer,r.date,r.status,r.resolution,'$'+r.refundAmt])],'returns');}
+function expRevCSV(){expCSV([['Month','Revenue'],['Aug','82000'],['Sep','94000'],['Oct','101000'],['Nov','118000'],['Dec','136000'],['Jan','142000'],['Feb','168000'],['Mar','184920']],'revenue');}
+function expLogiCSV(){expCSV([['Driver','Vehicle','Deliveries Today','Rating','Status'],...DRIVERS.map(d=>[d.name,d.vehicle,d.delivToday,d.rating,d.status])],'logistics');}
+
+function expPDF(title){
+  const dataMap={
+    Revenue:[['Month','Revenue (USD)'],['Aug','$82,000'],['Sep','$94,000'],['Oct','$101,000'],['Nov','$118,000'],['Dec','$136,000'],['Jan','$142,000'],['Feb','$168,000'],['Mar','$184,920']],
+    Orders:[['Order ID','Customer','Total','Status'],...fOrd.map(o=>[o.id,o.customer,'$'+o.total.toFixed(2),o.fulfillment])],
+    Returns:[['RMA','Order','Customer','Status','Resolution'],...RETURNS.map(r=>[r.id,r.orderId,r.customer,r.status,r.resolution])],
+    Inventory:[['Product','SKU','Available','Status'],...fInv.map(i=>[i.name,i.sku,i.available,i.available===0?'Out':i.available<8?'Low':'In Stock'])],
+    Logistics:[['Driver','Vehicle','Deliveries','Rating'],...DRIVERS.map(d=>[d.name,d.vehicle,d.delivToday,d.rating])],
+  };
+  const rows=dataMap[title]||[['No data']];
+  const w=window.open('','_blank');
+  const hdrs=rows[0].map(h=>`<th>${h}</th>`).join('');
+  const bdy=rows.slice(1).map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
+  w.document.write(`<html><head><title>${title} Report</title><style>body{font-family:sans-serif;padding:28px;font-size:13px}h2{margin-bottom:4px}p{color:#666;margin-bottom:16px}table{width:100%;border-collapse:collapse}th{background:#0ea5e9;color:#fff;padding:9px 12px;text-align:left;font-size:11px;letter-spacing:.5px}td{padding:8px 12px;border-bottom:1px solid #e2e8f0}tr:nth-child(even){background:#f8fafc}.ft{margin-top:20px;font-size:11px;color:#94a3b8;text-align:right}</style></head>
+  <body><h2>NEXUS Commerce — ${title} Report</h2><p>Generated: ${new Date().toLocaleDateString()} | NEXUS Admin Enterprise Suite</p>
+  <table><thead><tr>${hdrs}</tr></thead><tbody>${bdy}</tbody></table>
+  <div class="ft">Confidential — NEXUS Admin v3.0</div>
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();toast('📄 PDF print dialog opened');
+}
+function expXL(t){expPDF(t);toast('📗 Excel export opened (save as XLSX from print dialog)');}
+function printRep(t){expPDF(t);}
+function printT(id){
+  const tbl=document.getElementById(id);if(!tbl)return;
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><title>Print</title><style>body{font-family:sans-serif;padding:20px;font-size:12px}table{width:100%;border-collapse:collapse}th{background:#f1f5f9;padding:9px 12px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;border-bottom:2px solid #e2e8f0}td{padding:8px 12px;border-bottom:1px solid #e2e8f0}input[type=checkbox],.bic,.btn,.btn-xs{display:none}h2{margin-bottom:4px}p{color:#666;font-size:11px}</style></head><body>
+  <h2>NEXUS Commerce</h2><p>Generated: ${new Date().toLocaleString()}</p>${tbl.outerHTML}
+  <script>window.onload=()=>window.print()<\/script></body></html>`);
+  w.document.close();
+}
+
+// DASHBOARD RENDER
+function renderDashOrders(){
+  document.getElementById('dashOrders').innerHTML=ORDERS.slice(0,5).map((o,i)=>`<tr onclick="viewOrder(${i})" style="cursor:pointer"><td style="font-weight:700;color:var(--primary)">${o.id}</td><td>${o.customer}</td><td>$${o.total.toFixed(2)}</td><td><span class="bge ${fM(o.fulfillment)}">${o.fulfillment}</span></td></tr>`).join('');
+}
+function renderDashStock(){
+  const low=INVENTORY.filter(i=>i.available<=8).slice(0,5);
+  document.getElementById('dashStock').innerHTML=low.map(i=>`<tr><td><div class="pc"><div class="pi">${i.emoji}</div>${i.name}</div></td><td style="color:var(--muted)">${i.sku}</td><td style="font-weight:700;color:${i.available===0?'#ef4444':'#f59e0b'}">${i.available}</td><td><span class="bge ${i.available===0?'be':'bw'}">${i.available===0?'Out':'Low'}</span></td></tr>`).join('');
+}
+
+// CHARTS
+function initDashCharts(){
+  const labs=Array.from({length:14},(_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);return d.toLocaleDateString('en',{month:'short',day:'numeric'});});
+  const rev=Array.from({length:14},()=>Math.floor(3500+Math.random()*5000));
+  new Chart(document.getElementById('revC'),{type:'line',data:{labels:labs,datasets:[{label:'Revenue',data:rev,borderColor:'#0ea5e9',backgroundColor:'rgba(14,165,233,.08)',fill:true,tension:.4,pointRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k'},grid:{color:'#f1f5f9'}},x:{grid:{display:false}}}}});
+  new Chart(document.getElementById('stC'),{type:'doughnut',data:{labels:['Delivered','Shipped','Processing','Cancelled'],datasets:[{data:[1620,480,580,160],backgroundColor:['#22c55e','#3b82f6','#f59e0b','#ef4444'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right',labels:{font:{size:12}}}},cutout:'65%'}});
+}
+function initAnalytics(){
+  const mc=document.getElementById('mrevC');
+  if(mc&&!mc.dataset.init){mc.dataset.init='1';new Chart(mc,{type:'bar',data:{labels:['Aug','Sep','Oct','Nov','Dec','Jan','Feb','Mar'],datasets:[{label:'Revenue',data:[82000,94000,101000,118000,136000,142000,168000,184920],backgroundColor:'#0ea5e9',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'k'}},x:{grid:{display:false}}}}});}
+  const cc=document.getElementById('catC');
+  if(cc&&!cc.dataset.init){cc.dataset.init='1';new Chart(cc,{type:'pie',data:{labels:['Electronics','Apparel','Home','Accessories'],datasets:[{data:[42,24,18,16],backgroundColor:['#0ea5e9','#8b5cf6','#22c55e','#f59e0b'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'right'}}}});}
+}
+
+// INIT
+function initApp(){
+  renderOrders();renderInventory();renderDashOrders();renderDashStock();
+  // open order sub-nav by default
+  document.getElementById('orders-sub').classList.add('open');
+  document.getElementById('orders-arrow').classList.add('open');
+  document.getElementById('inv-sub').classList.add('open');
+  document.getElementById('inv-arrow').classList.add('open');
+  document.getElementById('logi-sub').classList.add('open');
+  document.getElementById('logi-arrow').classList.add('open');
+  setTimeout(initDashCharts,100);
+}
+
+document.getElementById('PW').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+
+// ════════════════════════════════════════════════
+// ROUTE BUILDER DATA & STATE
+// ════════════════════════════════════════════════
+const ROUTE_STOPS_SAMPLE = [
+  {order:'#ORD-8781',customer:'Priya Singh',address:'8 Koregaon Park, Pune',weight:'2.8kg',priority:'normal',type:'Delivery',window:'Afternoon (12–5)',pod:'Signature',notes:'Call ahead',status:'pending'},
+  {order:'#ORD-8762',customer:'James Nguyen',address:'78 Haight St, SF',weight:'1.2kg',priority:'express',type:'Delivery',window:'ASAP',pod:'Photo',notes:'',status:'pending'},
+  {order:'#ORD-8730',customer:'Karim Al-Hassan',address:'JBR Tower 3, Dubai',weight:'3.1kg',priority:'normal',type:'Delivery',window:'Morning (8–12)',pod:'Signature',notes:'',status:'pending'},
+];
+
+const ACTIVE_ROUTES = [
+  {id:'RT-2601',driver:'Mohammed Al-Rashid',vehicle:'Van NX-001',started:'09:30',eta:'~3:00 PM',stops:[
+    {order:'#ORD-8821',customer:'Aminur Rahman',address:'12 Mirpur Rd, Dhaka',status:'delivered',deliveredAt:'10:14',pod:'signature',podBy:'Aminur Rahman'},
+    {order:'#ORD-8810',customer:'Sarah Chen',address:'45 Park Ave',status:'delivered',deliveredAt:'11:02',pod:'photo',podBy:''},
+    {order:'#ORD-8712',customer:'Yuki Tanaka',address:'Marunouchi, Tokyo',status:'in_transit',deliveredAt:'',pod:'',podBy:''},
+    {order:'#ORD-8744',customer:'Emma Wilson',address:'Canal St, Manchester',status:'failed',deliveredAt:'12:30',pod:'',podBy:'',failReason:'Customer not home'},
+  ]},
+  {id:'RT-2600',driver:'Ahmad Hassan',vehicle:'Truck NX-002',started:'08:00',eta:'~5:00 PM',stops:[
+    {order:'#ORD-8794',customer:"Marcus O'Brien",address:'22 Baker St, London',status:'delivered',deliveredAt:'09:45',pod:'signature',podBy:"Marcus O'Brien"},
+    {order:'#ORD-8762',customer:'James Nguyen',address:'78 Haight St, SF',status:'in_transit',deliveredAt:'',pod:'',podBy:''},
+  ]},
+];
+
+const POD_LOG = [
+  {order:'#ORD-8821',driver:'Mohammed Al-Rashid',customer:'Aminur Rahman',address:'12 Mirpur Rd, Dhaka',time:'10:14 AM',podType:'Signature',status:'delivered',receiver:'Aminur Rahman',notes:''},
+  {order:'#ORD-8794',driver:'Ahmad Hassan',customer:"Marcus O'Brien",address:'22 Baker St, London',time:'09:45 AM',podType:'Signature',status:'delivered',receiver:"Marcus O'Brien",notes:''},
+  {order:'#ORD-8810',driver:'Mohammed Al-Rashid',customer:'Sarah Chen',address:'45 Park Ave, NY',time:'11:02 AM',podType:'Photo',status:'delivered',receiver:'Concierge',notes:'Left with building concierge'},
+  {order:'#ORD-8744',driver:'Mohammed Al-Rashid',customer:'Emma Wilson',address:'Canal St, Manchester',time:'12:30 PM',podType:'—',status:'failed',receiver:'',notes:'Customer not home — reattempt tomorrow'},
+  {order:'#ORD-8762',driver:'Ravi Kumar',customer:'James Nguyen',address:'78 Haight St, SF',time:'02:15 PM',podType:'Photo',status:'delivered',receiver:'James Nguyen',notes:''},
+];
+
+let routeStops = [];
+
+// ════════════════════════════════════════════════
+// UTL TAB SWITCHING
+// ════════════════════════════════════════════════
+function utlTab(tab, btn) {
+  document.querySelectorAll('#utlTabs .tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('utl-routes').style.display = tab === 'routes' ? '' : 'none';
+  document.getElementById('utl-pod').style.display = tab === 'pod' ? '' : 'none';
+  document.getElementById('utl-fleet').style.display = tab === 'fleet' ? '' : 'none';
+  document.getElementById('utl-analytics').style.display = tab === 'analytics' ? '' : 'none';
+  if (tab === 'routes') renderRouteCards();
+  if (tab === 'pod') renderPODLog();
+  if (tab === 'fleet') renderUTL();
+  if (tab === 'analytics') setTimeout(initDelivAnalytics, 100);
+}
+
+// ════════════════════════════════════════════════
+// DISPATCH TAB SWITCHING
+// ════════════════════════════════════════════════
+function dispTab(tab, btn) {
+  document.querySelectorAll('#pg-dispatch .tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('disp-unassigned').style.display = tab === 'unassigned' ? '' : 'none';
+  document.getElementById('disp-builder').style.display = tab === 'builder' ? '' : 'none';
+  document.getElementById('disp-active').style.display = tab === 'active' ? '' : 'none';
+  if (tab === 'active') renderActiveRoutes();
+  if (tab === 'builder') renderBuilderOrders();
+}
+
+// ════════════════════════════════════════════════
+// ROUTE CARDS (Live Routes)
+// ════════════════════════════════════════════════
+function renderRouteCards() {
+  document.getElementById('routeCards').innerHTML = ACTIVE_ROUTES.map(rt => {
+    const done = rt.stops.filter(s => s.status === 'delivered').length;
+    const total = rt.stops.length;
+    const failed = rt.stops.filter(s => s.status === 'failed').length;
+    const pct = Math.round((done / total) * 100);
+    const stopsHtml = rt.stops.map((s, i) => {
+      const sc = {delivered:'#22c55e', in_transit:'#0ea5e9', pending:'#94a3b8', failed:'#ef4444'}[s.status];
+      const icon = {delivered:'✅', in_transit:'🚗', pending:'⏳', failed:'❌'}[s.status];
+      return `<div style="display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--bor);align-items:flex-start;font-size:13px">
+        <div style="width:22px;height:22px;border-radius:50%;background:${sc};display:flex;align-items:center;justify-content:center;font-size:11px;flex-shrink:0;margin-top:2px">${i+1}</div>
+        <div style="flex:1">
+          <div style="font-weight:600">${s.order} — ${s.customer}</div>
+          <div style="font-size:11px;color:var(--muted)">${s.address}</div>
+          ${s.podBy ? `<div style="font-size:11px;color:var(--ok)">Signed by: ${s.podBy} at ${s.deliveredAt}</div>` : ''}
+          ${s.failReason ? `<div style="font-size:11px;color:var(--err)">Failed: ${s.failReason}</div>` : ''}
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          <span>${icon}</span>
+          ${s.status === 'in_transit' ? `<button class="btn btn-p btn-xs" onclick="document.getElementById('podOrderInfo').innerHTML='${s.order} — ${s.customer}';openM('podCaptureM')">POD</button>` : ''}
+          ${s.status === 'failed' ? `<button class="btn btn-warn btn-xs" onclick="toast('Reattempt scheduled for ${s.order}')">Reattempt</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="cd">
+      <div style="padding:16px 18px;border-bottom:1px solid var(--bor)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px">
+          <div>
+            <div style="font-weight:700;font-size:15px">🗺️ ${rt.id} — ${rt.driver}</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">${rt.vehicle} · Started: ${rt.started} · ETA: ${rt.eta}</div>
+          </div>
+          <div style="display:flex;gap:6px">
+            ${failed > 0 ? `<span class="bge be">${failed} failed</span>` : ''}
+            <button class="btn btn-o btn-xs" onclick="viewRouteDetail('${rt.id}')">View All Stops</button>
+            <button class="btn btn-o btn-xs" onclick="toast('Calling ${rt.driver}')">📞 Call</button>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${done}/${total} stops completed</span><span style="font-weight:700">${pct}%</span></div>
+          <div class="pw"><div class="pf" style="width:${pct}%;background:${pct===100?'#22c55e':pct>50?'#0ea5e9':'#f59e0b'}"></div></div>
+        </div>
+      </div>
+      <div style="padding:0 0 4px">${stopsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function viewRouteDetail(routeId) {
+  const rt = ACTIVE_ROUTES.find(r => r.id === routeId);
+  if (!rt) return;
+  document.getElementById('routeDetTitle').innerHTML = `🗺️ ${rt.id} — ${rt.driver} (${rt.vehicle})`;
+  const rows = rt.stops.map((s, i) => {
+    const sc = {delivered:'bs',in_transit:'bi',pending:'bg',failed:'be'}[s.status];
+    return `<tr>
+      <td style="font-weight:700;color:var(--muted)">#${i+1}</td>
+      <td style="color:var(--primary);font-weight:600">${s.order}</td>
+      <td>${s.customer}</td>
+      <td style="font-size:12px;color:var(--muted)">${s.address}</td>
+      <td><span class="bge ${sc}">${s.status.replace('_',' ')}</span></td>
+      <td>${s.deliveredAt || '—'}</td>
+      <td>${s.pod ? `<span class="bge bs">${s.pod}</span>` : '—'}</td>
+      <td>${s.podBy || s.failReason || '—'}</td>
+      <td>
+        ${s.status==='in_transit' ? `<button class="btn btn-p btn-xs" onclick="document.getElementById('podOrderInfo').innerHTML='${s.order} — ${s.customer}';closeM('routeDetailM');openM('podCaptureM')">📸 POD</button>` : ''}
+        ${s.status==='failed' ? `<button class="btn btn-warn btn-xs" onclick="toast('Rescheduling ${s.order}')">Reschedule</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('routeDetBody').innerHTML = `
+    <div style="background:var(--sur2);border-radius:9px;padding:12px 16px;margin-bottom:16px;display:flex;gap:24px;flex-wrap:wrap;font-size:13px">
+      <div><span style="color:var(--muted)">Driver: </span><strong>${rt.driver}</strong></div>
+      <div><span style="color:var(--muted)">Vehicle: </span><strong>${rt.vehicle}</strong></div>
+      <div><span style="color:var(--muted)">Departed: </span><strong>${rt.started}</strong></div>
+      <div><span style="color:var(--muted)">ETA: </span><strong>${rt.eta}</strong></div>
+      <div><span style="color:var(--muted)">Stops: </span><strong>${rt.stops.filter(s=>s.status==='delivered').length}/${rt.stops.length} done</strong></div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Order</th><th>Customer</th><th>Address</th><th>Status</th><th>Time</th><th>POD</th><th>Details</th><th>Action</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table></div>`;
+  openM('routeDetailM');
+}
+
+// ════════════════════════════════════════════════
+// POD LOG
+// ════════════════════════════════════════════════
+function renderPODLog() {
+  document.getElementById('podLogB').innerHTML = POD_LOG.map(p => {
+    const sc = p.status === 'delivered' ? 'bs' : 'be';
+    const podBadge = p.podType !== '—' ? `<span class="bge bi">${p.podType}</span>` : '—';
+    return `<tr>
+      <td style="font-weight:700;color:var(--primary)">${p.order}</td>
+      <td>${p.driver}</td>
+      <td>${p.customer}</td>
+      <td style="font-size:12px;color:var(--muted)">${p.address}</td>
+      <td style="color:var(--muted)">${p.time}</td>
+      <td>${podBadge}</td>
+      <td><span class="bge ${sc}">${p.status}</span></td>
+      <td><button class="btn btn-o btn-xs" onclick="toast('Viewing POD for ${p.order}')">View</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function expPODCSV() {
+  expCSV([['Order','Driver','Customer','Address','Time','POD Type','Status','Receiver','Notes'],
+    ...POD_LOG.map(p=>[p.order,p.driver,p.customer,p.address,p.time,p.podType,p.status,p.receiver,p.notes])], 'pod-log');
+}
+
+// ════════════════════════════════════════════════
+// ROUTE BUILDER
+// ════════════════════════════════════════════════
+function renderBuilderOrders() {
+  const avail = ORDERS.filter(o => o.fulfillment === 'processing');
+  document.getElementById('availableOrdersB').innerHTML = avail.map(o => `<tr>
+    <td style="color:var(--primary);font-weight:600">${o.id}</td>
+    <td>${o.customer}</td>
+    <td style="font-size:12px;color:var(--muted)">${o.address.slice(0,20)}…</td>
+    <td>2.5kg</td>
+    <td><span class="bge bw">Normal</span></td>
+    <td><button class="btn btn-p btn-xs" onclick="quickAddStop('${o.id}','${o.customer}','${o.address}')">+ Add</button></td>
+  </tr>`).join('');
+}
+
+function quickAddStop(ordId, cust, addr) {
+  routeStops.push({order:ordId, customer:cust, address:addr, weight:'2.5kg', priority:'normal', type:'Delivery', window:'ASAP', pod:'Signature', notes:'', status:'pending'});
+  renderRouteStopsList();
+  toast('📍 '+ordId+' added to route');
+}
+
+function addRouteStop() {
+  const sel = document.getElementById('stopOrder');
+  const parts = sel.options[sel.selectedIndex].text.split('—').map(s=>s.trim());
+  routeStops.push({order:parts[0].trim(), customer:parts[1], address:parts[2], weight:'2.5kg', priority:'normal', type:document.getElementById('stopType').value, window:'ASAP', pod:'Signature', notes:'', status:'pending'});
+  closeM('addStopM');
+  renderRouteStopsList();
+  toast('📍 Stop added to route');
+}
+
+function renderRouteStopsList() {
+  document.getElementById('stopCount').textContent = `(${routeStops.length} stop${routeStops.length!==1?'s':''})`;
+  if (!routeStops.length) {
+    document.getElementById('routeStopsList').innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">No stops added. Click + Add Stop to build your route.</div>';
+    document.getElementById('routeDist').textContent = '—';
+    document.getElementById('routeTime').textContent = '—';
+    return;
+  }
+  document.getElementById('routeDist').textContent = (routeStops.length * 4.2).toFixed(1) + ' km';
+  document.getElementById('routeTime').textContent = Math.round(routeStops.length * 18) + ' min';
+  document.getElementById('routeStopsList').innerHTML = routeStops.map((s, i) => `
+    <div style="display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--bor);align-items:center">
+      <div style="width:26px;height:26px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0">${i+1}</div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px">${s.order} — ${s.customer}</div>
+        <div style="font-size:11px;color:var(--muted)">${s.address} · ${s.type} · ${s.window} · POD: ${s.pod}</div>
+      </div>
+      <div style="display:flex;gap:4px">
+        ${i>0 ? `<button class="bic" onclick="moveStop(${i},-1)" title="Move up">↑</button>` : ''}
+        ${i<routeStops.length-1 ? `<button class="bic" onclick="moveStop(${i},1)" title="Move down">↓</button>` : ''}
+        <button class="bic d" onclick="routeStops.splice(${i},1);renderRouteStopsList()" title="Remove">×</button>
+      </div>
+    </div>`).join('');
+}
+
+function moveStop(idx, dir) {
+  const tmp = routeStops[idx];
+  routeStops[idx] = routeStops[idx + dir];
+  routeStops[idx + dir] = tmp;
+  renderRouteStopsList();
+}
+
+function optimizeRoute() {
+  if (!routeStops.length) { toast('⚠️ Add stops first'); return; }
+  // Shuffle to simulate optimization
+  routeStops.sort(() => Math.random() - 0.5);
+  renderRouteStopsList();
+  toast('⚡ Route optimized — shortest distance order applied');
+}
+
+function dispatchRoute() {
+  if (!routeStops.length) { toast('⚠️ Add at least one stop'); return; }
+  const driver = document.getElementById('rbDriver').value.split('—')[0].trim();
+  toast('🚀 Route dispatched to ' + driver + ' — ' + routeStops.length + ' stops');
+  routeStops = [];
+  renderRouteStopsList();
+}
+
+function renderActiveRoutes() {
+  document.getElementById('activeRoutesCards').innerHTML = ACTIVE_ROUTES.map(rt => {
+    const done = rt.stops.filter(s => s.status === 'delivered').length;
+    return `<div class="cd mb5">
+      <div class="cd-hd">
+        <div><div class="cd-t">🗺️ ${rt.id} — ${rt.driver}</div><div style="font-size:12px;color:var(--muted)">${rt.vehicle} · ${rt.stops.length} stops · ${done} done</div></div>
+        <div style="display:flex;gap:8px"><button class="btn btn-o btn-sm" onclick="viewRouteDetail('${rt.id}')">View Stops</button><button class="btn btn-p btn-sm" onclick="document.getElementById('podOrderInfo').textContent='${rt.id}';openM('podCaptureM')">📸 Record POD</button></div>
+      </div>
+      <div class="cd-b" style="padding:0">
+        <div class="tw"><table><thead><tr><th>#</th><th>Order</th><th>Customer</th><th>Status</th><th>Time</th><th>POD</th><th>Action</th></tr></thead>
+        <tbody>${rt.stops.map((s,i)=>{
+          const sc={delivered:'bs',in_transit:'bi',pending:'bg',failed:'be'}[s.status];
+          return `<tr><td style="color:var(--muted)">${i+1}</td><td style="color:var(--primary);font-weight:600">${s.order}</td><td>${s.customer}</td><td><span class="bge ${sc}">${s.status.replace('_',' ')}</span></td><td style="color:var(--muted)">${s.deliveredAt||'—'}</td><td>${s.pod?`<span class="bge bs">${s.pod}</span>`:'—'}</td>
+          <td>${s.status==='in_transit'?`<button class="btn btn-p btn-xs" onclick="document.getElementById('podOrderInfo').innerHTML='${s.order} — ${s.customer}';openM('podCaptureM')">📸 POD</button>`:s.status==='failed'?`<button class="btn btn-warn btn-xs" onclick="toast('Reattempt for ${s.order} scheduled')">↩ Retry</button>`:'—'}</td></tr>`;
+        }).join('')}</tbody></table></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════
+// POD CAPTURE LOGIC
+// ════════════════════════════════════════════════
+function captureSignature(el) {
+  document.getElementById('sigIcon').textContent = '✅';
+  document.getElementById('sigText').textContent = 'Signature captured — 16 Mar 2026 ' + new Date().toLocaleTimeString();
+  el.style.borderColor = 'var(--ok)';
+  el.style.background = '#dcfce7';
+}
+
+function capturePhoto(el) {
+  document.getElementById('photoIcon').textContent = '✅';
+  document.getElementById('photoText').textContent = 'Photo captured — package at door';
+  el.style.borderColor = 'var(--ok)';
+  el.style.background = '#dcfce7';
+}
+
+function savePOD() {
+  closeM('podCaptureM');
+  toast('✅ POD recorded — delivery confirmed');
+  // Reset
+  document.getElementById('sigIcon').textContent = '✍️';
+  document.getElementById('sigText').textContent = 'Tap to capture signature';
+  document.getElementById('photoIcon').textContent = '📷';
+  document.getElementById('photoText').textContent = 'Tap to take photo / upload';
+}
+
+// ════════════════════════════════════════════════
+// DELIVERY ANALYTICS CHART
+// ════════════════════════════════════════════════
+function initDelivAnalytics() {
+  const dc = document.getElementById('delivSuccC');
+  if (dc && !dc.dataset.init) {
+    dc.dataset.init = '1';
+    new Chart(dc, {
+      type: 'bar',
+      data: {
+        labels: ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],
+        datasets: [
+          {label:'Delivered', data:[18,22,16,25,20,14,8], backgroundColor:'#22c55e', borderRadius:4},
+          {label:'Failed', data:[1,2,0,1,2,0,1], backgroundColor:'#ef4444', borderRadius:4},
+        ]
+      },
+      options: {responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{x:{stacked:false,grid:{display:false}},y:{beginAtZero:true}}}
+    });
+  }
+}
+
+// ════════════════════════════════════════════════
+// OVERRIDE renderDispatch to use new layout
+// ════════════════════════════════════════════════
+function renderDispatch() {
+  const unass = ORDERS.filter(o => o.fulfillment === 'processing' && !o.tracking);
+  document.getElementById('unassigned-count').textContent = unass.length;
+  const priorityMap = (t) => t < 50 ? '<span class="bge be">Express</span>' : t < 150 ? '<span class="bge bw">Normal</span>' : '<span class="bge bg">Low</span>';
+  const suggestedDriver = ['Mohammed Al-Rashid','Ahmad Hassan','Ravi Kumar'];
+  document.getElementById('unassignedB').innerHTML = unass.map((o,i) => `<tr>
+    <td><input type="checkbox"/></td>
+    <td style="font-weight:700;color:var(--primary)">${o.id}</td>
+    <td><div style="display:flex;align-items:center;gap:7px"><div class="av-sm">${o.customer[0]}</div>${o.customer}</div></td>
+    <td style="font-size:12px;color:var(--muted)">${o.address.slice(0,28)}…</td>
+    <td>2.${i}kg</td>
+    <td>${priorityMap(o.total)}</td>
+    <td style="font-size:12px;color:var(--primary)">${suggestedDriver[i % 3]}</td>
+    <td><div style="display:flex;gap:4px">
+      <button class="btn btn-p btn-xs" onclick="document.getElementById('assignOrdInfo').innerHTML='${o.id} — ${o.customer}';openM('assignDriverM')">Assign</button>
+      <button class="btn btn-o btn-xs" onclick="dispTab('builder',document.querySelector('#pg-dispatch .tab:nth-child(2)'))">+ Route</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+</script>
+<!-- POD CAPTURE MODAL -->
+<div class="mo" id="podCaptureM">
+  <div class="md">
+    <div class="mh"><div class="mt">📸 Proof of Delivery</div><button class="mc" onclick="closeM('podCaptureM')">×</button></div>
+    <div class="mb_">
+      <div style="background:var(--sur2);border-radius:10px;padding:13px 16px;margin-bottom:16px">
+        <div style="font-weight:700;font-size:14px" id="podOrderInfo">Order #ORD-8810 — Sarah Chen</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px">45 Park Ave, New York NY 10022</div>
+      </div>
+      <div class="fg"><label class="fl">Delivery Status *</label>
+        <div style="display:flex;gap:8px">
+          <label style="flex:1;background:#dcfce7;border:2px solid #22c55e;border-radius:9px;padding:10px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:#16a34a"><input type="radio" name="podStat" value="delivered" checked style="display:none"/> ✅ Delivered</label>
+          <label style="flex:1;background:var(--sur2);border:2px solid var(--bor);border-radius:9px;padding:10px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:var(--muted)" onclick="document.getElementById('failedFields').style.display='block'"><input type="radio" name="podStat" value="failed" style="display:none"/> ❌ Failed Attempt</label>
+          <label style="flex:1;background:var(--sur2);border:2px solid var(--bor);border-radius:9px;padding:10px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;color:var(--muted)"><input type="radio" name="podStat" value="partial" style="display:none"/> ⚠️ Partial</label>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Received By</label><input type="text" id="podReceiver" placeholder="Name of person who received the package"/></div>
+      <div class="fg">
+        <label class="fl">Signature</label>
+        <div style="border:2px dashed var(--bor);border-radius:10px;height:90px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--sur2);transition:all .2s" onclick="captureSignature(this)">
+          <div style="font-size:26px;margin-bottom:5px" id="sigIcon">✍️</div>
+          <div style="font-size:12px;color:var(--muted)" id="sigText">Tap to capture signature</div>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">Photo Evidence</label>
+        <div style="border:2px dashed var(--bor);border-radius:10px;height:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:var(--sur2);transition:all .2s" onclick="capturePhoto(this)">
+          <div style="font-size:26px;margin-bottom:5px" id="photoIcon">📷</div>
+          <div style="font-size:12px;color:var(--muted)" id="photoText">Tap to take photo / upload</div>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Delivery Notes</label><input type="text" id="podNotes" placeholder="e.g. Left with neighbour, left at door, etc."/></div>
+      <div id="failedFields" style="display:none">
+        <div class="fg"><label class="fl">Failure Reason</label>
+          <select id="podFailReason"><option>Customer not home</option><option>Wrong address</option><option>Customer refused delivery</option><option>Access issue</option><option>Package damaged</option><option>Other</option></select>
+        </div>
+        <div class="fg"><label class="fl">Reattempt Schedule</label>
+          <select><option>Tomorrow same time</option><option>Tomorrow morning</option><option>Tomorrow afternoon</option><option>Customer to collect</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('podCaptureM')">Cancel</button><button class="btn btn-p" onclick="savePOD()">✅ Submit POD</button></div>
+  </div>
+</div>
+
+<!-- ADD STOP TO ROUTE -->
+<div class="mo" id="addStopM">
+  <div class="md">
+    <div class="mh"><div class="mt">📍 Add Stop to Route</div><button class="mc" onclick="closeM('addStopM')">×</button></div>
+    <div class="mb_">
+      <div class="fg"><label class="fl">Select Order</label>
+        <select id="stopOrder">
+          <option value="ORD-8781">#ORD-8781 — Priya Singh — 8 Koregaon Park, Pune</option>
+          <option value="ORD-8794">#ORD-8794 — Marcus O'Brien — 22 Baker St, London</option>
+          <option value="ORD-8730">#ORD-8730 — Karim Al-Hassan — JBR Tower, Dubai</option>
+        </select>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Stop Type</label><select id="stopType"><option>Delivery</option><option>Collection/Return Pickup</option><option>Exchange</option></select></div>
+        <div class="fg"><label class="fl">Delivery Window</label><select><option>ASAP</option><option>Morning (8–12)</option><option>Afternoon (12–5)</option><option>Evening (5–9)</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">POD Required</label><select><option>Signature required</option><option>Photo only</option><option>Any POD</option><option>No POD</option></select></div>
+        <div class="fg"><label class="fl">Contact on Arrival</label><select><option>Call customer</option><option>SMS customer</option><option>No contact</option></select></div>
+      </div>
+      <div class="fg"><label class="fl">Special Instructions</label><input type="text" placeholder="e.g. Fragile, call ahead, ring doorbell twice"/></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('addStopM')">Cancel</button><button class="btn btn-p" onclick="addRouteStop()">Add Stop</button></div>
+  </div>
+</div>
+
+<!-- BULK ASSIGN -->
+<div class="mo" id="bulkAssignM">
+  <div class="md md-lg">
+    <div class="mh"><div class="mt">⚡ Bulk Assign & Auto-Route</div><button class="mc" onclick="closeM('bulkAssignM')">×</button></div>
+    <div class="mb_">
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:9px;padding:12px 16px;margin-bottom:14px;font-size:13px"><strong>Auto-Route:</strong> Groups orders by geographic zone, assigns to nearest available driver with sufficient capacity.</div>
+      <div class="fg"><label class="fl">Assignment Mode</label>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1.5px solid var(--primary);border-radius:9px;background:var(--pl);cursor:pointer;font-size:13px"><input type="radio" name="assignMode" checked style="width:auto;margin-top:2px"/><div><div style="font-weight:600">Auto-optimize (Recommended)</div><div style="color:var(--muted);font-size:12px">Groups by zone, minimizes distance, respects vehicle capacity</div></div></label>
+          <label style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border:1.5px solid var(--bor);border-radius:9px;background:var(--sur2);cursor:pointer;font-size:13px"><input type="radio" name="assignMode" style="width:auto;margin-top:2px"/><div><div style="font-weight:600">Manual — same driver for all</div><div style="color:var(--muted);font-size:12px">Assign all selected orders to one driver</div></div></label>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">Driver (manual mode)</label><select><option>Mohammed Al-Rashid — Van NX-001</option><option>Ahmad Hassan — Truck NX-002</option><option>Ravi Kumar — Pickup NX-003</option></select></div>
+      <div class="fg"><label class="fl">POD Requirement for all stops</label><select><option>Signature required</option><option>Photo required</option><option>Any POD</option><option>No POD</option></select></div>
+    </div>
+    <div class="mf"><button class="btn btn-o" onclick="closeM('bulkAssignM')">Cancel</button><button class="btn btn-p" onclick="closeM('bulkAssignM');toast('✓ Orders auto-assigned to optimal drivers and routes created')">Assign & Create Routes</button></div>
+  </div>
+</div>
+
+<!-- ROUTE DETAIL MODAL -->
+<div class="mo" id="routeDetailM">
+  <div class="md md-lg">
+    <div class="mh">
+      <div class="mt" id="routeDetTitle">🗺️ Route Details</div>
+      <div style="display:flex;gap:8px"><button class="btn btn-o btn-sm" onclick="toast('Route sheet printed')">🖨️ Print Sheet</button><button class="mc" onclick="closeM('routeDetailM')">×</button></div>
+    </div>
+    <div class="mb_" id="routeDetBody"></div>
+  </div>
+</div>
+
+</body>
+</html>
